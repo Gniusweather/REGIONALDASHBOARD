@@ -24,7 +24,6 @@
     html, body {
       height: 100%;
       margin: 0;
-      padding: 0;
       background:
         radial-gradient(1200px 600px at 10% -10%, rgba(30,144,255,0.16), transparent 60%),
         radial-gradient(900px 500px at 110% 110%, rgba(30,144,255,0.12), transparent 60%),
@@ -34,13 +33,11 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* Visibility Widget */
+    /* Bonaire Visibility Widget */
     .weather-widget {
       position: absolute;
       top: 12px; left: 12px;
       width: 240px;
-      transform: scale(0.75);
-      transform-origin: top left;
       border: 1px solid var(--border);
       border-radius: var(--radius);
       background:
@@ -51,42 +48,32 @@
       user-select: none;
       cursor: default;
       transition: transform 160ms ease, box-shadow 160ms ease;
+      transform: scale(0.75);
+      transform-origin: top left;
     }
     .weather-widget:hover {
       transform: translateY(-2px) scale(0.75);
       box-shadow: 0 14px 40px rgba(0,0,50,0.7);
     }
     .widget-head {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      display: flex; align-items: center; gap: 8px;
       padding: 12px 14px;
       background: linear-gradient(90deg, var(--grad-1), var(--grad-2));
-      color: var(--text-main);
+      color: #fff;
     }
     .widget-head .icon {
-      width: 24px; height: 24px;
-      display: grid; place-items: center;
-      background: rgba(255,255,255,0.18);
-      border-radius: 8px;
-      font-size: 14px;
+      width: 24px; height: 24px; display: grid; place-items: center;
+      background: rgba(255,255,255,0.18); border-radius: 8px; font-size: 14px;
     }
     .widget-head .title {
-      margin: 0; font-size: 14px; font-weight: 700;
+      margin: 0; font-size: 14px; font-weight: 700; color: var(--accent);
     }
-    .content {
-      padding: 14px;
-    }
+    .content { padding: 14px; }
     .row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .vis-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 40px;
+      display: flex; align-items: center; gap: 8px; min-height: 40px;
     }
     .status-dot {
       width: 8px; height: 8px; border-radius: 50%;
@@ -114,26 +101,21 @@
       100% { background-position: -200% 0; }
     }
     .vis-value {
-      display: none;
       font-size: 1.8rem; font-weight: 800; line-height: 1;
-      color: var(--text-main);
-      opacity: 0;
-      animation: fadeIn 260ms ease forwards;
-      transition: color 160ms ease;
+      opacity: 0; animation: fadeIn 260ms ease forwards;
+      color: #fff; transition: color 160ms ease;
+      display: none;
     }
     .vis-value.low { color: var(--alert); }
     @keyframes fadeIn { to { opacity: 1; } }
-
     .btn {
-      padding: 6px 8px; border-radius: 8px;
-      border: 1px solid var(--border);
+      padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border);
       background:
         linear-gradient(180deg,
           rgba(255,255,255,0.06),
           rgba(255,255,255,0)
         );
-      color: var(--text-main);
-      font-size: 0.8rem; font-weight: 600;
+      color: var(--text-main); font-size: 0.8rem; font-weight: 600;
       display: inline-flex; align-items: center; gap: 4px;
       transition: background 160ms ease, transform 120ms ease;
     }
@@ -143,47 +125,41 @@
       width: 12px; height: 12px; border-radius: 50%;
       border: 2px solid rgba(255,255,255,0.25);
       border-top-color: var(--accent);
-      animation: spin 800ms linear infinite;
-      display: none;
+      animation: spin 800ms linear infinite; display: none;
     }
     .btn.loading .spin { display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .timestamp { margin-top: 8px; font-size: 0.85rem; color: var(--text-main); }
-    .hint { margin-top: 6px; font-size: 0.75rem; color: var(--text-main); }
+    .timestamp {
+      margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);
+    }
+    .hint {
+      margin-top: 6px; font-size: 0.75rem; color: var(--text-secondary);
+    }
 
     /* Dashboard */
     h1 {
-      text-align: center;
-      margin: 0 0 8px;
-      font-size: 32px; font-weight: 800;
-      color: var(--accent);
+      text-align: center; margin: 0 0 8px;
+      font-size: 32px; font-weight: 800; color: var(--accent);
     }
     #clocks {
       display: flex; justify-content: center; gap: 40px;
-      margin: 8px 0 24px; font-size: 24px;
-      color: var(--text-main);
+      margin: 8px 0 24px; font-size: 24px; color: var(--text-main);
     }
     #controls {
       text-align: center; margin-bottom: 24px;
     }
     #controls button {
-      background: var(--panel);
-      color: var(--text-main);
-      border: 2px solid var(--line);
-      border-radius: 6px;
-      padding: 10px 16px;
-      font-size: 16px;
-      margin: 0 8px 8px;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
+      background: var(--panel); color: var(--accent);
+      border: 2px solid var(--line); border-radius: 6px;
+      padding: 10px 16px; font-size: 16px; margin: 0 8px 8px;
+      cursor: pointer; transition: background 0.2s, color 0.2s;
     }
     #controls button:hover {
-      background: var(--accent);
-      color: var(--text-main);
+      background: var(--accent); color: var(--panel);
     }
-
-    .table-wrapper { overflow-x: auto; margin-bottom: 16px; }
+    .table-wrapper {
+      overflow-x: auto; margin-bottom: 16px;
+    }
     table {
       width: 100%; border-collapse: collapse;
       font-family: ui-monospace, Menlo, monospace;
@@ -191,22 +167,20 @@
     }
     th, td {
       border: 2px solid var(--line);
-      padding: 10px 12px;
-      text-align: center;
-      user-select: none;
-      color: var(--text-main);
+      padding: 10px 12px; text-align: center; user-select: none;
     }
     th {
-      background: #002040;
-      font-weight: 800;
-      text-transform: uppercase;
-      font-size: 16px;
-      letter-spacing: 0.5px;
+      background: #002040; color: var(--accent);
+      font-weight: 800; text-transform: uppercase;
+      font-size: 16px; letter-spacing: .5px;
     }
-    tr.stale { opacity: 0.55; }
+    tr.stale { opacity: .55; }
+
+    /* Station column */
     td.station {
-      font-size: 32px; font-weight: 800;
-      color: var(--accent);
+      font-weight: 800; color: var(--accent);
+      border: 3px solid var(--line);
+      font-size: 32px;
     }
     td.time { font-size: 26px; }
     td.vis  { font-size: 24px; }
@@ -215,80 +189,58 @@
     }
     td.highlight {
       background-color: var(--accent);
-      color: var(--panel);
-      font-weight: 800;
-      transition: background-color 0.5s ease, color 0.5s ease;
+      color: var(--panel); font-weight: 800;
+      transition: background-color .5s ease, color .5s ease;
     }
+    td.time.highlight { color: #000 !important; }
 
     /* Raw rows */
     tr.raw td {
-      background: #001830;
-      text-align: left;
-      padding: 12px 16px;
-      user-select: text;
+      background: #001830; text-align: left;
+      padding: 12px 16px; user-select: text;
       color: var(--text-main);
     }
-    .raw-current {
-      display: block;
-      font-size: 18px;
-      color: var(--text-main);
-      white-space: pre-wrap;
+    .raw-current, .raw-past {
+      display: block; white-space: pre-wrap;
       word-break: break-word;
     }
+    .raw-current { font-size: 18px; color: var(--text-main); }
     .raw-past {
-      display: block;
-      margin-top: 6px;
-      font-size: 16px;
+      margin-top: 6px; font-size: 16px;
       color: var(--text-secondary);
-      white-space: pre-wrap;
-      word-break: break-word;
     }
 
-    /* Mobile optimizations */
+    /* Mobile */
     @media (max-width: 600px) {
       .weather-widget {
-        transform: none;
-        width: calc(100% - 24px);
-        left: 12px;
-        top: 12px;
+        transform: none; width: calc(100% - 24px);
+        top: 12px; left: 12px;
       }
       .widget-head .title { font-size: 12px; }
       .skeleton { width: 80px; }
       .vis-value { font-size: 1.4rem; }
       h1 { font-size: 24px; }
       #clocks {
-        flex-direction: column;
-        gap: 12px;
-        font-size: 18px;
+        flex-direction: column; gap: 12px; font-size: 18px;
       }
       #controls {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: center;
+        display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
       }
       #controls button {
-        flex: 1 1 40%;
-        min-width: 120px;
-        margin: 4px;
-        font-size: 14px;
-        padding: 8px 12px;
+        flex: 1 1 40%; min-width: 120px;
+        margin: 4px; font-size: 14px; padding: 8px 12px;
       }
-      table {
-        font-size: 16px;
-      }
-      th, td {
-        padding: 6px 8px;
-      }
+      table { font-size: 16px; }
+      th, td { padding: 6px 8px; }
       td.station { font-size: 20px; }
       td.time    { font-size: 16px; }
       td.vis     { font-size: 14px; }
-      .btn { font-size: 1rem; padding: 8px 12px; }
+      .btn       { font-size: 1rem; padding: 8px 12px; }
     }
   </style>
 </head>
 <body>
-  <!-- Visibility Widget -->
+  <!-- Bonaire Visibility Widget -->
   <div class="weather-widget" id="bonaire-vis-widget" aria-live="polite" title="Double-click to refresh">
     <div class="widget-head">
       <div class="icon" aria-hidden="true">👁️</div>
@@ -366,42 +318,44 @@
 
     const stations = ['TNCA','TNCB','TNCC','TNCM','SVMI','SVVA'];
     const tafUrls  = stations.slice(0,3).map(icao=>({
-      icao, url:`https://tgftp.nws.noaa.gov/data/forecasts/taf/stations/${icao}.TXT`
+      icao,
+      url:`https://tgftp.nws.noaa.gov/data/forecasts/taf/stations/${icao}.TXT`
     }));
     const synopUrls = [
       {icao:'TNCC', url:'https://tgftp.nws.noaa.gov/data/raw/si/sica20.tncc..txt'},
       {icao:'TNCC', url:'https://tgftp.nws.noaa.gov/data/raw/sm/smca01.tncc..txt'}
     ];
 
-    const visEl = document.getElementById('vis-value');
-    const tsEl  = document.getElementById('vis-timestamp');
-    const dotEl = document.getElementById('vis-status');
-    const skel  = document.getElementById('vis-skeleton');
-    const btn   = document.getElementById('vis-refresh-btn');
-    const widget = document.getElementById('bonaire-vis-widget');
+    const visEl      = document.getElementById('vis-value');
+    const tsEl       = document.getElementById('vis-timestamp');
+    const dotEl      = document.getElementById('vis-status');
+    const skel       = document.getElementById('vis-skeleton');
+    const btn        = document.getElementById('vis-refresh-btn');
+    const widget     = document.getElementById('bonaire-vis-widget');
 
     const metarRows = {}, metarHist = {}, tafCells = {}, synopCells = [];
 
     async function fetchViaProxy(rawUrl) {
-      const resp = await fetch(PROXY_JSON + encodeURIComponent(rawUrl));
+      const resp = await fetch(PROXY_JSON + encodeURIComponent(rawUrl), { cache: 'no-store' });
       if (!resp.ok) throw new Error(resp.status);
       const { contents } = await resp.json();
       return contents;
     }
 
+    // Bonaire visibility
     async function fetchVisibility() {
       const text = await fetchViaProxy(API_VIS);
       const m = text.match(/Visibility\s*\(m\)[^\d]*(\d{3,6})/i);
       if (!m) throw new Error('Visibility not found');
-      return m[1] + ' m';
+      return m[1] + 'M';
     }
     function setLoading(flag) {
       if (flag) {
         visEl.style.display = 'none';
-        skel.style.display = 'block';
+        skel.style.display  = 'block';
         btn.classList.add('loading');
       } else {
-        skel.style.display = 'none';
+        skel.style.display  = 'none';
         visEl.style.display = 'block';
         btn.classList.remove('loading');
       }
@@ -412,7 +366,7 @@
         const v = await fetchVisibility();
         setLoading(false);
         visEl.textContent = v;
-        const low = parseInt(v,10) < ALERT_THR;
+        const low = parseInt(v, 10) < ALERT_THR;
         visEl.classList.toggle('low', low);
         dotEl.classList.toggle('low', low);
         tsEl.textContent = `Updated at ${new Date().toLocaleTimeString()}`;
@@ -421,7 +375,7 @@
       } catch {
         setLoading(false);
         visEl.textContent = 'N/A';
-        tsEl.textContent = '';
+        tsEl.textContent  = '';
         dotEl.classList.remove('low');
       }
     }
@@ -430,6 +384,7 @@
     setInterval(updateVis, REFRESH_MS);
     updateVis();
 
+    // clocks
     function pad(n){ return n<10?'0'+n:''+n; }
     function updateClocks(){
       const d=new Date();
@@ -441,18 +396,22 @@
     setInterval(updateClocks, 500);
     updateClocks();
 
-    function cleanForParse(s){
-      return s.replace(/\sRMK[\s\S]*/i,'')
-              .replace(/\s(?:TEMPO|BECMG|PROB\d{2}|FM\d{6})[\s\S]*/i,'')
-              .replace(/\bAUTO\b|\bCOR\b/gi,'').trim();
+    // METAR parsing & rendering
+    function cleanForParse(s) {
+      return s
+        .replace(/\sRMK[\s\S]*/i,'')
+        .replace(/\s(?:TEMPO|BECMG|PROB\d{2}|FM\d{6})[\s\S]*/i,'')
+        .replace(/\bAUTO\b|\bCOR\b/gi,'').trim();
     }
-    function parseMetar(raw){
+    function parseMetar(raw) {
       const t = cleanForParse(raw).split(/\s+/);
       const time = t[1]||'--';
       const base = t.find(x=>/^(?:VRB|\d{3})\d{2}(?:G\d{2})?KT$/.test(x))||'/////KT';
       const varG = t.find(x=>/^\d{3}V\d{3}$/.test(x));
-      const wind = base + (varG?' '+varG:'');
-      const vis  = t.find(x=>/^\d{4}$/.test(x))||'--';
+      const wind = base + (varG ? ' '+varG : '');
+      // collect variable visibility tokens (e.g., 9999 5000N)
+      const visTokens = t.filter(x=>/^\d{4}(?:[NSEW]{1,2})?$/.test(x));
+      const vis = visTokens.length ? visTokens.join(' ') : '--';
       const wx   = t.filter(x=>/^(?:\+|-)?(?:VC)?(?:TS|SH|RA|DZ|SN|FG|BR)/.test(x)).join(' ')||'--';
       const cldM = raw.match(/((?:FEW|SCT|BKN|OVC)(?:\d{3}|\/{3})(?:TCU|CB)?)/gi)||[];
       const cld  = cldM.join(' ')||'--';
@@ -461,15 +420,20 @@
       let qnh='—';
       if(qp){
         const h=qp.slice(1), i=(parseInt(h)*0.02953).toFixed(2);
-        qnh = `${h} - ${i}`;
+        qnh=`${h} - ${i}`;
       }
       const gust = +(base.match(/G(\d{2})/)?.[1]||0);
       let age=0;
       if(/^\d{6}Z$/.test(time)){
-        const now=new Date(), dd=parseInt(time.slice(0,2)), hh=parseInt(time.slice(2,4)), mm=parseInt(time.slice(4,6));
-        age=(Date.now()-Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),dd,hh,mm))/60000;
+        const now=new Date(), dd=parseInt(time.slice(0,2)),
+              hh=parseInt(time.slice(2,4)), mm=parseInt(time.slice(4,6));
+        age=(Date.now() - Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),dd,hh,mm))/60000;
       }
-      return { time, wind, vis, wx, cld, td, qnh, gust, age };
+      // minimum numeric visibility among tokens
+      const visMin = visTokens.length
+        ? Math.min(...visTokens.map(v=>parseInt(v,10)).filter(n=>!isNaN(n)))
+        : NaN;
+      return { time, wind, vis, wx, cld, td, qnh, gust, age, visMin };
     }
     function buildMetar(){
       const tb=document.getElementById('metar'); tb.innerHTML='';
@@ -478,22 +442,24 @@
         rr.className='raw';
         tr.innerHTML=`
           <td class="station">${icao}</td>
-          <td class="time">--</td><td>--</td><td class="vis">--</td>
-          <td>--</td><td>--</td><td>--</td><td>--</td>`;
+          <td class="time">--</td>
+          <td>--</td><td class="vis">--</td>
+          <td>--</td><td>--</td>
+          <td>--</td><td>--</td>`;
         rr.innerHTML=`
           <td colspan="8">
             <span class="raw-current">Waiting…</span>
             <span class="raw-past"></span>
           </td>`;
-        tb.append(tr, rr);
-        metarRows[icao] = { row: tr, curr: rr.querySelector('.raw-current'), past: rr.querySelector('.raw-past') };
-        metarHist[icao] = [];
+        tb.append(tr,rr);
+        metarRows[icao]={row:tr,curr:rr.querySelector('.raw-current'),past:rr.querySelector('.raw-past')};
+        metarHist[icao]=[];
       });
     }
     function scheduleHighlight(cell){
       clearTimeout(cell._t);
       cell.classList.add('highlight');
-      cell._t = setTimeout(()=>cell.classList.remove('highlight'), 20*60*1000);
+      cell._t=setTimeout(()=>cell.classList.remove('highlight'),20*60*1000);
     }
     async function loadMetar(){
       const tb=document.getElementById('metar');
@@ -504,41 +470,45 @@
       for(const icao of stations){
         try{
           const txt = testMode
-            ? `${icao} 121900Z AUTO COR 09025G35KT 0500 VCSH FEW///CB BKN016 28/24 Q1013`
+            ? `${icao} 121900Z 09025G35KT 9999 5000N FEW020 BKN016 28/24 Q1013`
             : await fetchViaProxy(`https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icao}.TXT`);
-          const raw = txt.trim().split(/\r?\n/).pop();
-          const d   = parseMetar(raw);
-          const hist= metarHist[icao];
-          const isNew = hist[0] && hist[0] !== raw;
-          if(!hist[0]||hist[0]!==raw){ hist.unshift(raw); if(hist.length>2) hist.pop(); }
+          const raw=txt.trim().split(/\r?\n/).pop();
+          const d=parseMetar(raw);
+          const hist=metarHist[icao];
+          const isNew=hist[0]&&hist[0]!==raw;
+          if(!hist[0]||hist[0]!==raw){hist.unshift(raw);if(hist.length>2)hist.pop();}
           if(icao==='TNCA'&&beepEnabled&&(d.gust>=35||/TS/.test(d.wx)))
             new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg').play();
           if(isNew&&beepEnabled)
             new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
-
           const idx=stations.indexOf(icao)*2;
           const row=tb.children[idx], c=row.querySelectorAll('td');
-          const windA=d.gust>0, visA=parseInt(d.vis,10)<=5000, wxA=d.wx!=='--', cldA=/…/.test(d.cld);
-          if(windA) c[2].classList.add('alert');
-          if(visA)  c[3].classList.add('alert');
-          if(wxA)   c[4].classList.add('alert');
-          if(cldA)  c[5].classList.add('alert');
-          if(windA||visA||wxA||cldA) c[0].classList.add('alert');
-          row.classList.toggle('stale', d.age>120);
-
-          c[1].textContent=d.time; if(isNew) scheduleHighlight(c[1]);
-          c[2].textContent=d.wind;   c[3].textContent=d.vis;
-          c[4].textContent=d.wx;     c[5].textContent=d.cld;
-          c[6].textContent=d.td;     c[7].textContent=d.qnh;
-
+          const windA=d.gust>0;
+          const visA = !isNaN(d.visMin) && d.visMin <= 5000;
+          const wxA  = d.wx!=='--';
+          const cldA = /CB|TCU/.test(d.cld);
+          if(windA)c[2].classList.add('alert');
+          if(visA) c[3].classList.add('alert');
+          if(wxA)  c[4].classList.add('alert');
+          if(cldA) c[5].classList.add('alert');
+          if(windA||visA||wxA||cldA)c[0].classList.add('alert');
+          row.classList.toggle('stale',d.age>120);
+          c[1].textContent=d.time; if(isNew)scheduleHighlight(c[1]);
+          c[2].textContent=d.wind;
+          c[3].textContent=d.vis;     // show combined variable visibility (e.g., "9999 5000N")
+          c[4].textContent=d.wx;
+          c[5].textContent=d.cld;
+          c[6].textContent=d.td;
+          c[7].textContent=d.qnh;
           metarRows[icao].curr.textContent=hist[0]||'';
           metarRows[icao].past.textContent=hist[1]||'';
         }catch{}
       }
-      document.getElementById('last-updated').textContent =
+      document.getElementById('last-updated').textContent=
         `METAR last updated: ${new Date().toLocaleTimeString()}`;
     }
 
+    // TAF
     function buildTaf(){
       const tb=document.getElementById('taf'); tb.innerHTML='';
       tafUrls.forEach(({icao})=>{
@@ -551,16 +521,16 @@
       for(const {icao,url} of tafUrls){
         try{
           const txt=testMode
-            ? `${icao} 121900Z FM200000 28010KT        8000 SCT020`
+            ? `${icao} 121900Z FM200000 28010KT 8000 SCT020`
             : await fetchViaProxy(url);
-          const parts=txt.trim().replace(/\r?\n/g,' ').split(/\s+/);
-          tafCells[icao].textContent=parts.slice(2).join(' ');
+          tafCells[icao].textContent=txt.trim().replace(/\s+/g,' ');
         }catch{ tafCells[icao].textContent='N/A'; }
       }
-      document.getElementById('taf-updated').textContent =
+      document.getElementById('taf-updated').textContent=
         `TAF last updated: ${new Date().toLocaleTimeString()}`;
     }
 
+    // SYNOP
     function buildSynop(){
       const tb=document.getElementById('synop'); tb.innerHTML='';
       synopUrls.forEach(({icao})=>{
@@ -574,34 +544,37 @@
         const {icao,url}=synopUrls[i];
         try{
           const txt=await fetchViaProxy(url);
-          synopCells[i].textContent=`${icao} ${txt.trim().replace(/\r?\n/g,' ')}`;
+          synopCells[i].textContent=`${icao} ${txt.trim().replace(/\s+/g,' ')}`;
         }catch{ synopCells[i].textContent='N/A'; }
       }
     }
 
+    // init
     buildMetar(); loadMetar();   setInterval(loadMetar,   60*1000);
     buildTaf();   loadTaf();     setInterval(loadTaf,     10*60*1000);
     buildSynop(); loadSynop();   setInterval(loadSynop,   10*60*1000);
 
-    document.getElementById('mute-btn').onclick=()=>{
+    // controls
+    document.getElementById('mute-btn').onclick = ()=>{
       beepEnabled=!beepEnabled;
-      document.getElementById('mute-btn').textContent =
-        beepEnabled ? 'Mute Beep' : 'Unmute Beep';
+      document.getElementById('mute-btn').textContent=
+        beepEnabled?'Mute Beep':'Unmute Beep';
     };
-    document.getElementById('refresh-btn').onclick=()=>{
+    document.getElementById('refresh-btn').onclick = ()=>{
       loadMetar(); loadTaf(); loadSynop(); updateVis();
     };
-    document.getElementById('test-btn').onclick=()=>{
+    document.getElementById('test-btn').onclick = ()=>{
       testMode=!testMode;
-      document.getElementById('test-btn').textContent =
-        testMode ? 'Exit Test Mode' : 'Enter Test Mode';
+      document.getElementById('test-btn').textContent=
+        testMode?'Exit Test Mode':'Enter Test Mode';
       buildMetar(); buildTaf(); buildSynop();
       loadMetar(); loadTaf(); loadSynop();
     };
 
+    // dbl-click to copy METAR cell
     document.body.addEventListener('dblclick', async e=>{
       const td=e.target.closest('#metar td');
-      if(!td) return;
+      if(!td)return;
       try{
         await navigator.clipboard.writeText(td.textContent.trim());
         td.classList.add('highlight');
