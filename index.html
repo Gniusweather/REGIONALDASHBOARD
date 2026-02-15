@@ -1,150 +1,177 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CAR/VEN METAR & TAF + Bonaire Visibility + SYNOP</title>
+  <title>METAR Dashboard — Bonaire Visibility (KNMI)</title>
   <style>
     :root{
-      --bg:#001020; --card:rgba(0,0,40,0.9); --border:rgba(70,130,180,0.26);
-      --text:#eef2f7; --muted:#9aa0a6; --accent:#55c1ff; --alert:#ff4d4d; --ok:#5dd18b;
-      --panel:#1a2a33; --line:#2a3b47; --radius:10px; --shadow:0 10px 30px rgba(0,0,0,0.45);
-      --time-highlight-dark:#052b49; --time-highlight-text:#eaf6ff;
-
-      --page-max-width:1400px;
-      --content-max-width:1150px;
-      --table-font-size:18px;
-      --cell-padding-vertical:12px;
-      --cell-padding-horizontal:14px;
+      --bg:#001020;
+      --card:rgba(0,0,40,0.92);
+      --border:rgba(70,130,180,0.26);
+      --text:#eef2f7;
+      --muted:#9aa0a6;
+      --accent:#55c1ff;
+      --accent-strong:#1b7cff;
+      --alert:#ff6b6b;
+      --ok:#5dd18b;
+      --panel:#0f2430;
+      --line:#20343f;
+      --radius:10px;
+      --shadow:0 10px 30px rgba(0,0,0,0.45);
+      --widget-width:260px;
+      --widget-padding:12px;
+      --metar-font-size:20px;
+      --clock-size:26px;
+      --date-size:14px;
+      --icao-font-size:20px;
+      --btn-blue-bg:linear-gradient(180deg,var(--accent-strong),#2a9bff);
+      --btn-blue-border:rgba(27,124,255,0.18);
     }
 
     html,body{
       height:100%;
       margin:0;
-      background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(123,97,255,0.06), transparent 60%),
-        var(--bg);
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(123,97,255,0.04), transparent 60%), var(--bg);
       color:var(--text);
       font-family:Inter, Arial, sans-serif;
       -webkit-text-size-adjust:100%;
     }
 
-    .page{ width:100%; padding:12px 16px; display:flex; flex-direction:column; align-items:center; box-sizing:border-box; }
-    .top-row{ width:100%; max-width:var(--page-max-width); display:flex; gap:12px; align-items:flex-start; justify-content:space-between; box-sizing:border-box; }
+    .page{ width:100%; box-sizing:border-box; padding:12px 16px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+    .top-row{ width:100%; max-width:1200px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 
-    .weather-widget{ width:160px; border-radius:10px; background:var(--card); box-shadow:var(--shadow); border:1px solid var(--border); overflow:hidden; }
-    .widget-head{ padding:8px; display:flex; gap:8px; align-items:center; background:linear-gradient(90deg,#1b7cff,#7a5cff); }
-    .widget-head .title{ font-weight:700; font-size:13px; color:#fff; }
-
-    .content{ padding:8px; font-size:13px; }
+    .weather-widget{ width:var(--widget-width); border-radius:var(--radius); background:var(--card); box-shadow:var(--shadow); border:1px solid var(--border); overflow:hidden; }
+    .widget-head{ padding:var(--widget-padding); display:flex; gap:8px; align-items:center; background:linear-gradient(90deg,var(--accent-strong),#7a5cff); }
+    .widget-head .title{ font-weight:700; font-size:14px; color:#fff; }
+    .content{ padding:var(--widget-padding); font-size:13px; color:var(--text); }
     .vis-wrap{ display:flex; gap:8px; align-items:center; }
     .status-dot{ width:10px; height:10px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 2px rgba(93,209,139,0.12); }
-    .status-dot.low{ background:var(--alert); box-shadow:0 0 0 2px rgba(255,77,77,0.12); }
-    .vis-value{ font-weight:800; font-size:1rem; }
-    .timestamp{ margin-top:6px; color:var(--muted); font-size:12px; }
+    .status-dot.low{ background:var(--alert); box-shadow:0 0 0 2px rgba(255,107,107,0.12); }
+    .vis-value{ font-weight:800; font-size:1.05rem; min-width:72px; text-align:left; }
+    .timestamp{ margin-top:6px; color:var(--muted); font-size:12px; display:block; }
+
+    .btn-blue{
+      padding:6px 10px;
+      border-radius:8px;
+      border:1px solid var(--btn-blue-border);
+      background:var(--btn-blue-bg);
+      color:#fff;
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+      box-shadow:0 6px 18px rgba(27,124,255,0.12);
+      height:34px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .btn-blue:active{ transform:translateY(1px) scale(.995); }
+    .btn-blue[disabled]{ opacity:.6; cursor:not-allowed; }
 
     .header-block{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; }
-    .header-title{ font-size:18px; color:var(--accent); font-weight:800; margin:0; }
-    .header-clocks{ display:flex; gap:16px; align-items:center; color:var(--muted); font-size:14px; }
+    .header-title{ font-size:16px; color:var(--accent); font-weight:800; margin:0; }
+    .header-clocks{ display:flex; gap:18px; align-items:center; color:var(--muted); font-size:13px; }
+
+    .clock-group{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .clock-time{ font-size:var(--clock-size); color:var(--text); font-weight:800; letter-spacing:0.6px; }
+    .clock-date{ font-size:var(--date-size); color:var(--muted); }
 
     .controls-wrap{ display:flex; gap:8px; align-items:center; }
-    .controls-wrap button{ padding:6px 8px; border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--accent); cursor:pointer; font-size:12px; height:28px; }
+    .controls-wrap button{ padding:6px 8px; border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--accent); cursor:pointer; font-size:12px; height:34px; }
 
-    .content-wrapper{ width:100%; max-width:var(--content-max-width); margin-top:10px; box-sizing:border-box; }
+    .content-wrapper{ width:100%; max-width:1200px; box-sizing:border-box; }
 
+    .table-wrapper{ width:100%; margin:10px 0; padding:0; box-sizing:border-box; }
     .section-controls{ display:flex; justify-content:flex-end; gap:8px; margin-bottom:10px; align-items:center; }
-    .section-controls button{ padding:8px 12px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--text); cursor:pointer; font-size:14px; height:28px; }
 
-    .spinner { width:18px; height:18px; border-radius:50%; display:inline-block; position:relative; margin-left:8px; vertical-align:middle; }
-    .spinner.pulse { box-shadow:0 0 0 0 rgba(85,193,255,0.5); background:var(--accent); animation:pulse 1200ms ease-in-out infinite; }
-    @keyframes pulse { 0% { transform:scale(.9); box-shadow:0 0 0 0 rgba(85,193,255,0.5);} 70% { transform:scale(1); box-shadow:0 0 0 10px rgba(85,193,255,0);} 100% { transform:scale(.9); box-shadow:0 0 0 0 rgba(85,193,255,0);} }
-
-    table{ width:100%; border-collapse:collapse; font-family:ui-monospace,Menlo,monospace; color:var(--text); font-size:var(--table-font-size); }
-    th, td{ padding:12px 14px; border:2px solid var(--line); text-align:center; vertical-align:middle; }
-    th{ background:#0c3146; color:var(--accent); font-weight:800; font-size:14px; text-transform:uppercase; }
-    td.station{ font-weight:800; color:var(--accent); font-size:18px; }
+    table{ width:100%; border-collapse:collapse; font-family:ui-monospace,Menlo,monospace; color:var(--text); font-size:var(--metar-font-size); }
+    th, td{ padding:10px 12px; border:2px solid var(--line); text-align:center; vertical-align:middle; }
+    th{ background:#0c3146; color:var(--accent); font-weight:800; font-size:13px; text-transform:uppercase; }
+    td.station{ font-weight:900; color:var(--accent); font-size:var(--icao-font-size); text-align:left; padding-left:16px; }
     tr.stale{ opacity:.6; }
-    tr.raw td{ background:#0b2a33; text-align:left; color:var(--muted); padding:14px; }
-    .raw-current{ font-size:15px; color:var(--text); display:block; white-space:pre-wrap; }
-    .raw-past{ margin-top:8px; font-size:14px; color:var(--muted); display:block; }
+    td.alert{ border:3px solid var(--alert) !important; }
+    tr.raw td{ background:#0b2a33; text-align:left; color:var(--muted); padding:12px; white-space:pre-wrap; font-size:14px; }
+    .raw-current{ font-size:14px; color:var(--text); display:block; white-space:pre-wrap; }
+    .raw-past{ margin-top:8px; font-size:13px; color:var(--muted); display:block; }
 
-    .flash-blue{ background:rgba(18,58,86,0.95) !important; color:#eaf6ff !important; transition:background .18s, color .18s; }
-
-    .time-updated{ background:var(--time-highlight-dark) !important; color:var(--time-highlight-text) !important; font-weight:800; transition:background .25s, color .25s; }
+    .time-updated{ background:#052b49 !important; color:#eaf6ff !important; font-weight:800; transition:background .25s, color .25s; }
     .time-updated.dim{ opacity:0.5 !important; }
 
-    /* unified critical cell style (same look as cloud highlight) */
-    td.cell-critical {
-      border:3px solid var(--alert) !important;
-      box-shadow:0 0 12px rgba(255,77,77,0.12) inset;
-      background: rgba(255,77,77,0.03);
-      color: #ffdede;
-      font-weight:800;
-    }
+    td.clouds.cloud-critical { border:3px solid var(--alert) !important; box-shadow:0 0 10px rgba(255,107,107,0.08) inset; }
+    td.wx.wx-critical { border:3px solid var(--alert) !important; box-shadow:0 0 8px rgba(255,107,107,0.06) inset; }
 
-    .hidden{ display:none !important; }
+    .footer { width:100%; max-width:1200px; margin-top:18px; color:var(--muted); font-size:13px; display:flex; align-items:center; justify-content:space-between; padding:12px 0; box-sizing:border-box; }
 
-    .footer { width:100%; max-width:var(--content-max-width); margin-top:18px; color:var(--muted); font-size:13px; display:flex; align-items:center; justify-content:center; gap:18px; padding:12px 0; box-sizing:border-box; }
+    .hidden-row { display:none !important; }
 
     @media (max-width:920px){
       .top-row{ flex-direction:column; align-items:stretch; gap:10px; }
-      .weather-widget{ width:140px; }
-      table{ font-size:16px; }
-      .footer { flex-direction:column; gap:8px; padding-bottom:18px; }
+      .weather-widget{ width:100%; }
+      table{ font-size:18px; }
+      .header-clocks{ gap:10px; }
     }
   </style>
 </head>
 <body>
   <div class="page">
     <div class="top-row" role="banner">
-      <div class="weather-widget" id="bonaire-vis-widget" title="Double-click to refresh" aria-live="polite">
+      <!-- Bonaire visibility widget (unchanged) -->
+      <div class="weather-widget" id="bonaire-vis-widget" title="Bonaire visibility" tabindex="0" aria-live="polite" role="region" aria-label="Bonaire visibility">
         <div class="widget-head">
-          <div style="width:18px;height:18px;display:grid;place-items:center">👁️</div>
+          <div style="width:20px;height:20px;display:grid;place-items:center" aria-hidden="true">👁️</div>
           <div class="title">Bonaire Visibility</div>
         </div>
         <div class="content">
           <div style="display:flex;align-items:center;justify-content:space-between">
-            <div class="vis-wrap">
+            <div class="vis-wrap" aria-hidden="false">
               <div id="vis-status" class="status-dot" aria-hidden="true"></div>
-              <div id="vis-value" class="vis-value" role="status" aria-live="polite">Loading…</div>
+              <div style="display:flex;flex-direction:column;align-items:flex-start">
+                <div id="vis-value" class="vis-value" role="status" aria-live="polite">—</div>
+                <div id="vis-timestamp" class="timestamp" aria-hidden="true" style="display:none"></div>
+              </div>
             </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <button id="vis-refresh-btn" style="padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:12px">Refresh</button>
-              <div id="vis-spinner" class="spinner hidden" title="loading"><span class="spinner pulse"></span></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button id="vis-refresh-btn" class="btn-blue" aria-label="Refresh Bonaire visibility">Refresh Vis</button>
             </div>
           </div>
-          <div id="vis-timestamp" class="timestamp">Waiting for data…</div>
         </div>
       </div>
 
+      <!-- Header with clocks -->
       <div class="header-block" role="region" aria-label="Regional header">
-        <div class="header-title">KNMI REGIONAL WEATHER CENTRE</div>
-        <div class="header-clocks">
-          <div><strong>Local:</strong> <span id="local-clock">--:--:--</span><div id="local-date" style="color:var(--muted);font-size:12px"></div></div>
-          <div><strong>UTC:</strong> <span id="utc-clock">--:--:--</span><div id="utc-date" style="color:var(--muted);font-size:12px"></div></div>
+        <div class="header-title">Regional Weather Centre</div>
+        <div class="header-clocks" aria-hidden="false">
+          <div class="clock-group" aria-label="Local time">
+            <div style="font-size:12px;color:var(--muted)">Local</div>
+            <div id="local-clock" class="clock-time">--:--:--</div>
+            <div id="local-date" class="clock-date">--</div>
+          </div>
+          <div class="clock-group" aria-label="UTC time">
+            <div style="font-size:12px;color:var(--muted)">UTC</div>
+            <div id="utc-clock" class="clock-time">--:--:--</div>
+            <div id="utc-date" class="clock-date">--</div>
+          </div>
         </div>
       </div>
 
       <div class="controls-wrap" role="toolbar" aria-label="Controls">
-        <button id="mute-btn">Mute Beep</button>
-        <button id="refresh-btn">Refresh All</button>
+        <button id="mute-btn" aria-pressed="false">Mute Beep</button>
+        <button id="refresh-btn" class="btn-blue" title="Refresh METARs & Vis">Refresh METARs & Vis</button>
         <button id="test-btn">Enter Test Mode</button>
-        <div id="global-spinner" class="spinner hidden" title="refreshing all"><span class="spinner pulse"></span></div>
       </div>
     </div>
 
     <div class="content-wrapper">
+      <!-- METAR section -->
       <div class="table-wrapper" id="metar-section">
         <div class="section-controls" aria-label="METAR controls">
-          <button id="metar-refresh-btn" title="Refresh METAR section">Refresh METAR</button>
-          <div id="metar-spinner" class="spinner hidden" title="loading METAR"><span class="spinner pulse"></span></div>
+          <button id="metar-refresh-btn" class="btn-blue" title="Refresh METAR section">Refresh METAR</button>
         </div>
 
         <table class="metar-table" aria-label="METAR list">
           <thead>
-            <tr>
-              <th>ICAO</th><th>Time</th><th>Wind</th><th>Vis</th><th>Wx</th><th>Clouds</th><th>Temp/Dew</th><th>QNH</th>
-            </tr>
+            <tr><th>ICAO</th><th>Time</th><th>Wind</th><th>Vis</th><th>Wx</th><th>Clouds</th><th>Temp/Dew</th><th>QNH</th></tr>
           </thead>
           <tbody id="metar"></tbody>
         </table>
@@ -152,10 +179,10 @@
         <div id="last-updated" style="text-align:center;color:var(--muted);margin-top:8px">METAR last updated: --:--</div>
       </div>
 
+      <!-- TAF (manual refresh only) -->
       <div class="table-wrapper">
         <div class="section-controls">
-          <button id="taf-refresh-btn" title="Refresh TAF section">Refresh TAF</button>
-          <div id="taf-spinner" class="spinner hidden" title="loading TAF"><span class="spinner pulse"></span></div>
+          <button id="taf-refresh-btn" class="btn-blue" title="Refresh all TAFs (manual)">Refresh TAFs</button>
         </div>
         <table id="taf-table" aria-label="TAF list">
           <thead><tr><th>ICAO</th><th>Raw TAF</th></tr></thead>
@@ -164,13 +191,13 @@
         <div id="taf-updated" style="text-align:center;color:var(--muted);margin-top:8px">TAF last updated: --:--</div>
       </div>
 
+      <!-- SYNOP (manual refresh only) -->
       <div class="table-wrapper">
         <div class="section-controls">
-          <button id="synop-refresh-btn" title="Refresh SYNOP section">Refresh SYNOP</button>
-          <div id="synop-spinner" class="spinner hidden" title="loading SYNOP"><span class="spinner pulse"></span></div>
+          <button id="synop-refresh-btn" class="btn-blue" title="Refresh SYNOPs (manual)">Refresh SYNOPs</button>
         </div>
         <table id="synop-table" aria-label="SYNOP list">
-          <thead><tr><th>ICAO</th><th>Raw SYNOP</th></tr></thead>
+          <thead><tr><th>Source</th><th>Raw SYNOP</th></tr></thead>
           <tbody id="synop"></tbody>
         </table>
         <div id="synop-updated" style="text-align:center;color:var(--muted);margin-top:8px">SYNOP last updated: --:--</div>
@@ -178,103 +205,85 @@
     </div>
 
     <div class="footer" role="contentinfo" aria-label="Footer">
-      <div style="color:var(--muted)">Created by GNIUS</div>
+      <div>Created by GNIUS</div>
+      <div style="color:var(--muted)">Bonaire visibility is taken directly from KNMI Bonaire Current page</div>
     </div>
   </div>
 
   <script>
   (function(){
-    // --- CONFIG ---
-    const STATIONS = ['TNCA','TNCB','TNCC','TNCM','SVMI','SVVA'];
+    'use strict';
 
+    /* ===========================
+       Configuration
+       =========================== */
+    const STATIONS = ['TNCA','TNCB','TNCC','TNCM','SVMI','SVVA'];
+    const METAR_TEMPLATE = 'https://tgftp.nws.noaa.gov/data/observations/metar/stations/{ICAO}.TXT';
+    const TAF_TEMPLATE = 'https://tgftp.nws.noaa.gov/data/forecasts/taf/stations/{ICAO}.TXT';
+    const KNMI_BONAIRE_URL = 'https://www.knmidc.org/weather/bonaire/?Current';
+
+    const METAR_REFRESH_MS = 30 * 1000;
+    const VIS_REFRESH_MS = 60 * 1000;
+
+    const REQUEST_TIMEOUT_MS = 12000;
     const FALLBACKS = [
       { name:'allorigins_json', prefix:'https://api.allorigins.win/get?url=' },
       { name:'jina_raw', prefix:'https://r.jina.ai/http://' }
     ];
+    const MAX_RETRIES = 3;
+    const BACKOFF_BASE_MS = 500;
 
-    const API_VIS = 'https://www.knmidc.org/weather/bonaire/?Current';
-    const METAR_TEMPLATE = 'https://tgftp.nws.noaa.gov/data/observations/metar/stations/{ICAO}.TXT';
-    const TAF_TEMPLATE = 'https://tgftp.nws.noaa.gov/data/forecasts/taf/stations/{ICAO}.TXT';
-    const SYNOP_URLS = [
-      {icao:'TNCC', url:'https://tgftp.nws.noaa.gov/data/raw/si/sica20.tncc..txt'},
-      {icao:'TNCC', url:'https://tgftp.nws.noaa.gov/data/raw/sm/smca01.tncc..txt'}
-    ];
-
-    // Reduced poll interval: 10 seconds
-    const METAR_REFRESH_MS = 10 * 1000;
-    const TAF_REFRESH_MS = 10 * 60 * 1000;
-    const SYNOP_REFRESH_MS = 10 * 60 * 1000;
-    const VIS_REFRESH_MS = 5 * 60 * 1000;
-    const REQUEST_TIMEOUT_MS_FAST = 2500; // 2.5s per attempt
-    const CONCURRENCY_LIMIT = 3;
-
-    // State
-    let testMode = false;
-    let beepEnabled = true;
-    const metarHist = {};
-    const metarRows = {};
-    const timeHighlightTimers = {};
-
-    // DOM refs
+    /* ===========================
+       DOM references
+       =========================== */
     const localClockEl = document.getElementById('local-clock');
-    const utcClockEl = document.getElementById('utc-clock');
     const localDateEl = document.getElementById('local-date');
+    const utcClockEl = document.getElementById('utc-clock');
     const utcDateEl = document.getElementById('utc-date');
+
     const visValueEl = document.getElementById('vis-value');
     const visStatusEl = document.getElementById('vis-status');
     const visTsEl = document.getElementById('vis-timestamp');
-    const visSpinnerEl = document.getElementById('vis-spinner');
-    const metarSpinnerEl = document.getElementById('metar-spinner');
-    const tafSpinnerEl = document.getElementById('taf-spinner');
-    const synopSpinnerEl = document.getElementById('synop-spinner');
-    const globalSpinnerEl = document.getElementById('global-spinner');
 
-    // beep
-    const beepAudio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-    beepAudio.preload = 'auto';
-    beepAudio.volume = 0.9;
+    const metarTbody = document.getElementById('metar');
+    const lastUpdatedEl = document.getElementById('last-updated');
 
-    // Helpers
+    const tafTbody = document.getElementById('taf');
+    const tafUpdatedEl = document.getElementById('taf-updated');
+
+    const synopTbody = document.getElementById('synop');
+    const synopUpdatedEl = document.getElementById('synop-updated');
+
+    /* ===========================
+       Utilities
+       =========================== */
     function pad(n){ return n < 10 ? '0' + n : '' + n; }
-
-    // Format date as DD-MM-YYYY and time as HH:MM:SS
     function formatLocalDateTimeParts(){
       const d = new Date();
-      const date = `${pad(d.getDate())}-${pad(d.getMonth()+1)}-${d.getFullYear()}`;
-      const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-      return { date, time };
+      return { date: `${pad(d.getDate())}-${pad(d.getMonth()+1)}-${d.getFullYear()}`, time: `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}` };
     }
     function formatUTCDateTimeParts(){
       const d = new Date();
-      const date = `${pad(d.getUTCDate())}-${pad(d.getUTCMonth()+1)}-${d.getUTCFullYear()}`;
-      const time = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
-      return { date, time };
+      return { date: `${pad(d.getUTCDate())}-${pad(d.getUTCMonth()+1)}-${d.getUTCFullYear()}`, time: `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}` };
     }
 
     function tickClocks(){
       try{
         const local = formatLocalDateTimeParts();
         const utc = formatUTCDateTimeParts();
-        localClockEl.textContent = local.time;
-        localDateEl.textContent = local.date;
-        utcClockEl.textContent = utc.time;
-        utcDateEl.textContent = utc.date;
-      }catch(e){
-        localClockEl.textContent = new Date().toLocaleTimeString();
-        utcClockEl.textContent = new Date().toUTCString().split(' ')[4];
-      }
+        if (localClockEl) localClockEl.textContent = local.time;
+        if (localDateEl) localDateEl.textContent = local.date;
+        if (utcClockEl) utcClockEl.textContent = utc.time;
+        if (utcDateEl) utcDateEl.textContent = utc.date;
+      }catch(e){}
     }
     tickClocks(); setInterval(tickClocks, 1000);
 
-    function show(el){ if(el) el.classList.remove('hidden'); }
-    function hide(el){ if(el) el.classList.add('hidden'); }
-
-    // Generic fetch with timeout
-    async function fetchWithTimeout(url, timeout){
+    async function fetchWithTimeout(url, timeout = REQUEST_TIMEOUT_MS, opts = {}){
       const ctrl = new AbortController();
       const id = setTimeout(()=>ctrl.abort(), timeout);
       try {
-        const r = await fetch(url, { cache:'no-store', mode:'cors', signal: ctrl.signal });
+        const r = await fetch(url, Object.assign({ cache:'no-store', mode:'cors', signal: ctrl.signal }, opts));
         clearTimeout(id);
         return r;
       } catch (e) {
@@ -283,121 +292,158 @@
       }
     }
 
-    // Try direct first, then fallbacks quickly. Returns {ok, text}
-    async function fetchVisibilityText(url){
-      try {
-        const r = await fetchWithTimeout(url, REQUEST_TIMEOUT_MS_FAST);
-        if (r && r.ok){
-          const txt = await r.text();
-          if (txt && txt.trim()) return { ok:true, text: txt };
-        }
-      } catch (e) {}
-      for (const fb of FALLBACKS){
-        try {
-          const full = fb.prefix + encodeURIComponent(url);
-          const r2 = await fetchWithTimeout(full, REQUEST_TIMEOUT_MS_FAST);
-          if (!r2 || !r2.ok) continue;
-          if (fb.name === 'allorigins_json'){
-            try {
-              const j = await r2.json();
-              if (j && typeof j.contents === 'string' && j.contents.trim()) return { ok:true, text: j.contents };
-            } catch(e){}
-          } else {
-            const txt2 = await r2.text();
-            if (txt2 && txt2.trim()) return { ok:true, text: txt2 };
-          }
-        } catch (e) {}
+    // sanitize: remove proxy metadata lines and URLs, keep only METAR/TAF/SYNOP content lines
+    function sanitizeText(text){
+      if(!text) return '';
+      let t = String(text);
+      t = t.replace(/\r/g,' ').replace(/\t/g,' ').replace(/\u00A0/g,' ').replace(/\n+/g,'\n').trim();
+      const lines = t.split('\n').map(l => l.trim()).filter(Boolean);
+      const keep = [];
+      for (let line of lines){
+        if (/^\s*Title\s*:/i.test(line)) continue;
+        if (/^\s*URL\s*Source\s*:/i.test(line)) continue;
+        if (/^\s*Published\s*Time\s*:/i.test(line)) continue;
+        if (/^\s*Markdown\s*Content\s*:/i.test(line)) continue;
+        if (/^https?:\/\/\S+/i.test(line)) continue;
+        if (/^\d{4}[\/\-]\d{2}[\/\-]\d{2}(\s+\d{2}:\d{2}(:\d{2})?)?$/.test(line)) continue;
+        if (/^\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}/.test(line)) continue;
+        if (/^\s*(Source|Retrieved|Fetch|Response)\s*:/i.test(line)) continue;
+        keep.push(line);
       }
-      const jina = FALLBACKS.find(f=>f.name==='jina_raw');
-      if (jina){
-        try {
-          const full = jina.prefix + url.replace(/^https?:\/\//,'');
-          const r3 = await fetchWithTimeout(full, REQUEST_TIMEOUT_MS_FAST * 2);
-          if (r3 && r3.ok){
-            const txt3 = await r3.text();
-            if (txt3 && txt3.trim()) return { ok:true, text: txt3 };
-          }
-        } catch(e){}
-      }
-      return { ok:false };
+      return keep.join('\n').trim();
     }
 
-    function parseVisibilityFromText(text){
+    async function robustFetchText(url){
+      // 1) allorigins
+      try {
+        const proxy = FALLBACKS[0].prefix + encodeURIComponent(url);
+        const r = await fetchWithTimeout(proxy, REQUEST_TIMEOUT_MS);
+        if (r && r.ok){
+          const j = await r.json();
+          if (j && typeof j.contents === 'string' && j.contents.trim()){
+            const s = sanitizeText(j.contents);
+            if (s) return { ok:true, text: s };
+          }
+        }
+      } catch(e){ /* continue */ }
+
+      // 2) jina.ai
+      try {
+        const proxy2 = FALLBACKS[1].prefix + url.replace(/^https?:\/\//,'');
+        const r2 = await fetchWithTimeout(proxy2, REQUEST_TIMEOUT_MS * 2);
+        if (r2 && r2.ok){
+          const txt2 = await r2.text();
+          if (txt2 && txt2.trim()){
+            const s2 = sanitizeText(txt2);
+            if (s2) return { ok:true, text: s2 };
+          }
+        }
+      } catch(e){ /* continue */ }
+
+      // 3) direct
+      try {
+        const r3 = await fetchWithTimeout(url, REQUEST_TIMEOUT_MS);
+        if (r3 && r3.ok){
+          const txt3 = await r3.text();
+          if (txt3 && txt3.trim()){
+            const s3 = sanitizeText(txt3);
+            if (s3) return { ok:true, text: s3 };
+          }
+        }
+      } catch(e){ /* continue */ }
+
+      return { ok:false, error:'no content' };
+    }
+
+    async function fetchWithRetries(url, attempts = MAX_RETRIES){
+      let lastErr = null;
+      for (let i = 0; i < attempts; i++){
+        try {
+          const out = await robustFetchText(url);
+          if (out && out.ok && out.text) return out;
+          lastErr = out && out.error ? new Error(out.error) : new Error('No content');
+        } catch (err) {
+          lastErr = err;
+        }
+        const backoff = BACKOFF_BASE_MS * Math.pow(2, i);
+        const jitter = Math.floor(Math.random() * Math.min(500, backoff));
+        await new Promise(r => setTimeout(r, backoff + jitter));
+      }
+      return { ok:false, error: lastErr ? String(lastErr) : 'fetch failed' };
+    }
+
+    /* ===========================
+       KNMI Bonaire visibility (unchanged)
+       =========================== */
+    function extractKnmiBonaireVisibility(text){
       if(!text || !text.trim()) return null;
-      const s = text.replace(/\u00A0/g,' ').replace(/\s+/g,' ');
-      let m = s.match(/visibility\s*\(m\)[^\d\-]*([0-9]{3,6})/i);
-      if (m) return { meters: parseInt(m[1],10) };
-      m = s.match(/\bVIS(?:IBILITY)?\b[^\d\-]*([0-9]{3,6})\b/i);
-      if (m) return { meters: parseInt(m[1],10) };
-      m = s.match(/([0-9]{1,3}(?:\.[0-9])?)\s?km\b/i);
-      if (m) return { meters: Math.round(parseFloat(m[1]) * 1000) };
-      m = s.match(/([0-9]{3,6})\s?m\b/i);
-      if (m) return { meters: parseInt(m[1],10) };
-      m = s.match(/\b(?:VIS|visibility)[^\d]{0,10}([0-9]{3,4})\b/i);
-      if (m) return { meters: parseInt(m[1],10) };
-      m = s.match(/\b([0-9]{4,6})\b/);
-      if (m) return { meters: parseInt(m[1],10) };
+      const s = String(text).replace(/\u00A0/g,' ').replace(/\s+/g,' ');
+      let m = s.match(/Visibility\s*\(m\)\s*[:\-]?\s*([0-9]{3,6})\b/i);
+      if (m && m[1]) return `${m[1]} m`;
+      m = s.match(/Visibility\s*\(?\s*m\s*\)?\s*[:\-]?\s*([0-9]{3,6})\b/i);
+      if (m && m[1]) return `${m[1]} m`;
+      m = s.match(/Visibility[^\d]{0,30}([0-9]{3,6})\b/i);
+      if (m && m[1]) return `${m[1]} m`;
+      const allNums = Array.from(s.matchAll(/\b([0-9]{4,6})\b/g)).map(a=>a[1]);
+      if (allNums.length){
+        allNums.sort((a,b)=>b.length - a.length || b.localeCompare(a));
+        return `${allNums[0]} m`;
+      }
       return null;
     }
 
-    async function updateVis(showSpinner=true){
-      if (showSpinner) show(visSpinnerEl);
+    async function updateVisFromKnmi(){
       try {
-        visValueEl.textContent = 'Loading…';
-        const localParts = formatLocalDateTimeParts();
-        visTsEl.textContent = `Checking ${localParts.date} ${localParts.time}…`;
-        const res = await fetchVisibilityText(API_VIS);
-        if (!res.ok){
-          visValueEl.textContent = 'No data';
-          visStatusEl.classList.remove('low');
-          visTsEl.textContent = `Updated at ${localParts.date} ${localParts.time}`;
-          return;
-        }
-        const text = String(res.text || '');
-        const parsed = parseVisibilityFromText(text);
-        if (parsed && typeof parsed.meters === 'number' && !isNaN(parsed.meters)){
-          const meters = parsed.meters;
-          const display = meters >= 1000 ? `${(meters/1000).toFixed(meters%1000===0?0:1)} km` : `${meters} m`;
-          visValueEl.textContent = display;
-          const low = meters < 20000;
-          visStatusEl.classList.toggle('low', !!low);
-          visTsEl.textContent = `Updated at ${localParts.date} ${localParts.time}`;
-        } else {
-          visValueEl.textContent = 'No data';
-          visStatusEl.classList.remove('low');
-          visTsEl.textContent = `Updated at ${localParts.date} ${localParts.time}`;
+        const out = await fetchWithRetries(KNMI_BONAIRE_URL, MAX_RETRIES);
+        if (!out || !out.ok || !out.text) return;
+        const text = String(out.text || '');
+        const rawVis = extractKnmiBonaireVisibility(text);
+        if (rawVis) {
+          visValueEl.textContent = rawVis;
+          const numeric = rawVis.match(/([0-9]{3,6})/);
+          if (numeric) {
+            const meters = parseInt(numeric[1].replace(/\D/g,''),10);
+            visStatusEl.classList.toggle('low', meters < 20000);
+          } else {
+            visStatusEl.classList.remove('low');
+          }
+          const local = formatLocalDateTimeParts();
+          if (visTsEl) { visTsEl.textContent = `Updated: ${local.date} ${local.time}`; visTsEl.style.display = 'none'; }
         }
       } catch (e){
-        console.error('updateVis error', e);
-        visValueEl.textContent = 'Error';
-        visStatusEl.classList.remove('low');
-        const localParts = formatLocalDateTimeParts();
-        visTsEl.textContent = `Updated at ${localParts.date} ${localParts.time}`;
-      } finally {
-        if (showSpinner) hide(visSpinnerEl);
+        console.error('updateVisFromKnmi error', e);
       }
     }
 
-    document.getElementById('vis-refresh-btn').addEventListener('click', ()=>updateVis(true));
-    document.getElementById('bonaire-vis-widget').addEventListener('dblclick', ()=>updateVis(true));
+    /* ===========================
+       METAR rendering and alert logic
+       =========================== */
+    const metarState = {};
 
-    // Build METAR rows
-    function buildMetar(){
-      const tb = document.getElementById('metar'); tb.innerHTML = '';
+    function buildMetarTable(){
+      if(!metarTbody) return;
+      metarTbody.innerHTML = '';
       STATIONS.forEach(icao=>{
-        metarHist[icao] = metarHist[icao] || { lastTime:null, lastRaw:null, pastRaw:null };
-        const tr = document.createElement('tr'), rr = document.createElement('tr');
+        metarState[icao] = metarState[icao] || { lastTime:null, lastRaw:null, pastRaw:null, row:null, rawEl:null, pastEl:null };
+        const tr = document.createElement('tr');
+        const rr = document.createElement('tr');
         rr.className = 'raw';
-        // ensure the Clouds cell has class "clouds" so we can target it reliably
-        tr.innerHTML = `<td class="station">${icao}</td><td class="time">--</td><td class="wind">--</td><td class="vis">--</td><td class="wx">--</td><td class="clouds" data-critical="false">--</td><td class="td-temp">--</td><td class="qnh">--</td>`;
-        rr.innerHTML = `<td colspan="8"><span class="raw-current">Fetching…</span><span class="raw-past" style="display:block;margin-top:8px;color:var(--muted);font-size:13px"></span></td>`;
-        tb.appendChild(tr); tb.appendChild(rr);
-        metarRows[icao] = { row:tr, curr: rr.querySelector('.raw-current'), past: rr.querySelector('.raw-past') };
+        tr.innerHTML = `<td class="station">${icao}</td><td class="time">--</td><td>--</td><td class="vis">--</td><td class="wx">--</td><td class="clouds">--</td><td>--</td><td>--</td>`;
+        rr.innerHTML = `<td colspan="8"><span class="raw-current"></span><span class="raw-past" style="display:block;margin-top:8px;color:var(--muted);font-size:13px"></span></td>`;
+        metarTbody.appendChild(tr);
+        metarTbody.appendChild(rr);
+        metarState[icao].row = tr;
+        metarState[icao].rawEl = rr.querySelector('.raw-current');
+        metarState[icao].pastEl = rr.querySelector('.raw-past');
       });
     }
-    buildMetar();
+    buildMetarTable();
 
-    function cleanForParse(s){ return String(s||'').replace(/\sRMK[\s\S]*/i,'').replace(/\s(?:TEMPO|BECMG|PROB\d{2}|FM\d{6})[\s\S]*/i,'').replace(/\bAUTO\b|\bCOR\b/gi,'').trim(); }
+    function cleanForParse(s){
+      if(!s) return '';
+      return String(s).replace(/\sRMK[\s\S]*/i,'').replace(/\s(?:TEMPO|BECMG|PROB\d{2}|FM\d{6})[\s\S]*/i,'').replace(/\bAUTO\b|\bCOR\b/gi,'').trim();
+    }
+
     function parseMetar(raw){
       const cleaned = cleanForParse(raw);
       const tokens = cleaned.split(/\s+/);
@@ -408,443 +454,288 @@
       const visTokens = tokens.filter(x=>/^\d{4}(?:[NSEW]{1,2})?$/.test(x));
       const vis = visTokens.length ? visTokens.join(' ') : '--';
       const visMin = visTokens.length ? Math.min(...visTokens.map(v=>parseInt(v,10)).filter(n=>!isNaN(n))) : NaN;
-      const wx = tokens.filter(x=>/^(?:\+|-)?(?:VC)?(?:TS|SH|RA|DZ|SN|FG|BR|HZ|SA|DU|SQ|PO|TSRA|VCTS)/.test(x)).join(' ') || '--';
-      // capture cloud groups including attached CB/TCU (e.g., FEW020CB)
-      const cldMatch = raw.match(/((?:FEW|SCT|BKN|OVC)(?:\d{3}|\/{3})(?:TCU|CB)?)/gi) || [];
+      const wx = tokens.filter(x=>/^(?:\+|-)?(?:VC)?(?:TS|VCTS|VCSH|SH|SHRA|RA|DZ|SN|FG|BR|HZ|SA|DU|SQ|PO|TSRA|SHRA)/.test(x)).join(' ') || '--';
+      const cldMatch = cleaned.match(/((?:FEW|SCT|BKN|OVC)(?:\d{3}|\/{3})(?:TCU|CB)?)/gi) || [];
       const cld = cldMatch.join(' ') || '--';
       const td = tokens.find(x=>/^M?\d{2}\/M?\d{2}$/.test(x)) || '--';
       const qp = tokens.find(x=>/^Q\d{4}$/.test(x)) || null;
       let qnh = '—';
-      if(qp){ const h = qp.slice(1); const inches = (parseInt(h,10) * 0.02953).toFixed(2); qnh = `${h} - ${inches}`; }
+      if(qp){
+        const h = qp.slice(1);
+        const inches = (parseInt(h,10) * 0.029529983071445).toFixed(2);
+        qnh = `${h} - ${inches}`;
+      }
       const gust = +(windBase.match(/G(\d{2})/)?.[1] || 0);
       let age = 0;
-      if(/^\d{6}Z$/.test(time)){ const now=new Date(), dd=parseInt(time.slice(0,2)), hh=parseInt(time.slice(2,4)), mm=parseInt(time.slice(4,6)); age = (Date.now() - Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), dd, hh, mm)) / 60000; }
-      return { time, wind, vis, visTokens, visMin, wx, cld, td, qnh, gust, age, raw };
+      if(/^\d{6}Z$/.test(time)){
+        const now=new Date();
+        const dd=parseInt(time.slice(0,2),10);
+        const hh=parseInt(time.slice(2,4),10);
+        const mm=parseInt(time.slice(4,6),10);
+        const tokenUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), dd, hh, mm);
+        age = (Date.now() - tokenUtc) / 60000;
+      }
+      return { time, wind, vis, visTokens, visMin, wx, cld, td, qnh, gust, age, raw: cleaned };
     }
 
     function setWxCritical(cell, wxText){
-      // keep severe detection but we will highlight any present weather as requested
-      const severe = /(^|\s)(?:\+|-)?(?:TS|TSRA|SQ|FC|DS|SS|GR|GS|PL|DZ|SHRA|TSGR)(?:\b|$)/i.test(wxText);
-      if(severe && cell) cell.classList.add('wx-severe');
-      else if(cell) cell.classList.remove('wx-severe');
-      return severe;
+      if(!cell) return false;
+      const txt = String(wxText || '');
+      const hasTS = /\b(?:VCTS|VCSH|TS|TSRA)\b/i.test(txt);
+      const hasSHRA = /\bSHRA\b/i.test(txt);
+      const hasSevere = /(^|\s)(?:\+|-)\s*(?:SHRA|SH|RA|DZ|SN|FG|BR|HZ)/i.test(txt);
+      const hasVCwithSH = /\bVC(?:SH|TS)\b/i.test(txt);
+      const critical = hasTS || hasVCwithSH || hasSevere || hasSHRA;
+      if(critical) cell.classList.add('wx-critical'); else cell.classList.remove('wx-critical');
+      return critical;
     }
 
-    function minuteDiffToUTC(timeToken){
-      if(!timeToken || typeof timeToken !== 'string') return null;
-      let hhmm = null;
-      const m6 = timeToken.match(/^(\d{2})(\d{2})(\d{2})Z$/);
-      const m4 = timeToken.match(/^(\d{2})(\d{2})Z$/);
-      const m4noZ = timeToken.match(/^(\d{2})(\d{2})$/);
-      if(m6) hhmm = m6[2]+m6[3];
-      else if(m4) hhmm = m4[1]+m4[2];
-      else if(m4noZ) hhmm = m4noZ[1]+m4noZ[2];
-      if(!hhmm) return null;
-      const th = parseInt(hhmm.slice(0,2),10);
-      const tm = parseInt(hhmm.slice(2,4),10);
-      const now = new Date();
-      const tokenUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), th, tm);
-      const diffMs = Date.now() - tokenUtc;
-      const diffMin = Math.round(diffMs / 60000);
-      return diffMin;
-    }
-
-    // Format METAR time token to "HH:MMZ" for display in the Time column
-    function formatMetarTime(token){
-      if(!token || typeof token !== 'string') return token || '--';
-      let hh = null, mm = null;
-      const m6 = token.match(/^(\d{2})(\d{2})(\d{2})Z$/); // DDHHMMZ
-      const m4 = token.match(/^(\d{2})(\d{2})Z$/); // HHMMZ
-      const m4noZ = token.match(/^(\d{2})(\d{2})$/); // HHMM
-      if(m6){ hh = m6[2]; mm = m6[3]; }
-      else if(m4){ hh = m4[1]; mm = m4[2]; }
-      else if(m4noZ){ hh = m4noZ[1]; mm = m4noZ[2]; }
-      else {
-        const m = token.match(/(\d{2})(\d{2})Z?/);
-        if(m){ hh = m[1]; mm = m[2]; }
-      }
-      if(hh !== null && mm !== null) return `${hh}:${mm}Z`;
-      return token;
-    }
-
-    // Check whether METAR time's HHMM equals current UTC HHMM
-    function isTimeSameAsUTC(timeToken){
-      if(!timeToken || typeof timeToken !== 'string') return false;
-      let hh = null, mm = null;
-      const m6 = timeToken.match(/^(\d{2})(\d{2})(\d{2})Z$/); // DDHHMMZ
-      const m4 = timeToken.match(/^(\d{2})(\d{2})Z$/); // HHMMZ
-      const m4noZ = timeToken.match(/^(\d{2})(\d{2})$/);
-      if(m6){ hh = m6[2]; mm = m6[3]; }
-      else if(m4){ hh = m4[1]; mm = m4[2]; }
-      else if(m4noZ){ hh = m4noZ[1]; mm = m4noZ[2]; }
-      else {
-        const m = timeToken.match(/(\d{2})(\d{2})Z?/);
-        if(m){ hh = m[1]; mm = m[2]; }
-      }
-      if(hh === null || mm === null) return false;
-      const now = new Date();
-      const utcHH = String(now.getUTCHours()).padStart(2,'0');
-      const utcMM = String(now.getUTCMinutes()).padStart(2,'0');
-      return hh === utcHH && mm === utcMM;
-    }
-
-    // Highlight the time cell when there is new METAR data (isNew).
     function markTimeUpdated(icao, timeToken){
-      const tb = document.getElementById('metar');
-      const idx = STATIONS.indexOf(icao) * 2;
-      if(idx < 0) return;
-      const row = tb.children[idx];
-      const timeCell = row && row.querySelector('td.time');
+      const state = metarState[icao];
+      if(!state || !state.row) return;
+      const timeCell = state.row.querySelector('td.time');
       if(!timeCell) return;
       timeCell.classList.add('time-updated');
       timeCell.classList.remove('dim');
-      const diffMin = minuteDiffToUTC(timeToken);
-      if(diffMin !== null && Math.abs(diffMin) <= 5) timeCell.classList.add('dim');
-      if(timeHighlightTimers[icao]) clearTimeout(timeHighlightTimers[icao]);
-      timeHighlightTimers[icao] = setTimeout(()=>{
-        timeCell.classList.remove('time-updated');
-        timeCell.classList.remove('dim');
-        delete timeHighlightTimers[icao];
-      }, 15 * 60 * 1000);
+      setTimeout(()=>{ timeCell.classList.remove('time-updated'); timeCell.classList.remove('dim'); }, 5 * 60 * 1000);
+    }
+
+    // returns true if the row currently has any alert classes that should be considered "red highlight"
+    function rowHasAlert(state){
+      if(!state || !state.row) return false;
+      const tds = state.row.querySelectorAll('td');
+      // check for alert class on ICAO cell or wx/clouds cells
+      return tds[0].classList.contains('alert') || tds[3].classList.contains('alert') || tds[4].classList.contains('alert') || tds[5].classList.contains('cloud-critical') || tds[4].classList.contains('wx-critical');
+    }
+
+    function applyTestModeVisibility(enabled){
+      // when enabled: show only rows that have alert (red highlight)
+      // when disabled: restore all rows
+      STATIONS.forEach(icao=>{
+        const state = metarState[icao];
+        if(!state || !state.row) return;
+        const rawRow = state.rawEl ? state.rawEl.parentElement.parentElement : null; // the <tr class="raw">
+        if(enabled){
+          if(rowHasAlert(state)){
+            state.row.classList.remove('hidden-row');
+            if(rawRow) rawRow.classList.remove('hidden-row');
+          } else {
+            state.row.classList.add('hidden-row');
+            if(rawRow) rawRow.classList.add('hidden-row');
+          }
+        } else {
+          state.row.classList.remove('hidden-row');
+          if(rawRow) rawRow.classList.remove('hidden-row');
+        }
+      });
     }
 
     function renderMetar(icao, raw){
       try{
-        if(!raw) {
-          if(metarRows[icao]) metarRows[icao].curr.textContent = 'No data';
-          return false;
-        }
-        const parsed = parseMetar(raw);
-        const idx = STATIONS.indexOf(icao) * 2;
-        if(idx < 0) return false;
-        const tb = document.getElementById('metar');
-        const dataRow = tb.children[idx];
-        if(!dataRow) return false;
-
-        // find the specific cells by class names (more robust than index)
-        const stationCell = dataRow.querySelector('td.station');
-        const timeCell = dataRow.querySelector('td.time');
-        const windCell = dataRow.querySelector('td.wind');
-        const visCell = dataRow.querySelector('td.vis');
-        const wxCell = dataRow.querySelector('td.wx');
-        const cloudsCell = dataRow.querySelector('td.clouds');
-        const tdTemp = dataRow.querySelector('td.td-temp');
-        const qnhCell = dataRow.querySelector('td.qnh');
-
-        // clear previous markers on this row
-        [stationCell, windCell, visCell, wxCell, cloudsCell].forEach(c=>{
-          if(!c) return;
-          c.classList.remove('alert');
-          c.classList.remove('cell-critical');
-          c.classList.remove('wx-severe');
-          c.removeAttribute('data-critical');
-        });
-
-        const windGusting = parsed.gust > 0;
-        // visibility tokens are in meters; treat < 9000 m (9 km) as critical per request
-        const visMeters = Number(parsed.visMin) || NaN;
-        const visCritical = !isNaN(visMeters) && visMeters < 9000;
-        const wxPresent = parsed.wx && parsed.wx !== '--' && parsed.wx.trim() !== '';
-
-        // detect cloud-critical: match CB or TCU even when attached to cloud group (e.g., FEW020CB)
-        const cldCritical = /(?:\bCB\b|\bTCU\b|CB|TCU)/i.test(parsed.cld);
-
-        // mark severe weather if present (keeps separate class)
-        const wxSevere = setWxCritical(wxCell || document.createElement('td'), parsed.wx);
-
-        // Apply unified critical styling (same as clouds) for:
-        // - clouds containing CB/TCU
-        // - any weather present (wx)
-        // - wind gusting
-        // - visibility less than 9 km
-        if(cldCritical && cloudsCell){
-          cloudsCell.classList.add('cell-critical');
-          cloudsCell.setAttribute('data-critical','true');
-        } else if (cloudsCell) {
-          cloudsCell.setAttribute('data-critical','false');
-          cloudsCell.classList.remove('cell-critical');
-        }
-
-        if(wxPresent && wxCell){
-          wxCell.classList.add('cell-critical');
-          wxCell.setAttribute('data-critical','true');
-        } else if (wxCell) {
-          wxCell.setAttribute('data-critical','false');
-          wxCell.classList.remove('cell-critical');
-        }
-
-        if(windGusting && windCell){
-          windCell.classList.add('cell-critical');
-          windCell.setAttribute('data-critical','true');
-        } else if (windCell) {
-          windCell.setAttribute('data-critical','false');
-          windCell.classList.remove('cell-critical');
-        }
-
-        if(visCritical && visCell){
-          visCell.classList.add('cell-critical');
-          visCell.setAttribute('data-critical','true');
-        } else if (visCell) {
-          visCell.setAttribute('data-critical','false');
-          visCell.classList.remove('cell-critical');
-        }
-
-        // station cell gets an alert marker if any of the above are critical
-        if((cldCritical || wxPresent || windGusting || visCritical) && stationCell){
-          stationCell.classList.add('alert');
-        }
-
-        if(testMode){
-          // in test mode, ensure clouds with CB/TCU are highlighted and other criticals visible
-          if(/(?:CB|TCU)/i.test(parsed.cld) && cloudsCell) {
-            cloudsCell.classList.add('cell-critical');
-            cloudsCell.setAttribute('data-critical','true');
-          }
-          if(parsed.wx && wxCell) {
-            wxCell.classList.add('cell-critical');
-            wxCell.setAttribute('data-critical','true');
-          }
-          if(parsed.gust > 0 && windCell){
-            windCell.classList.add('cell-critical');
-            windCell.setAttribute('data-critical','true');
-          }
-          if(!isNaN(parsed.visMin) && parsed.visMin < 9000 && visCell){
-            visCell.classList.add('cell-critical');
-            visCell.setAttribute('data-critical','true');
-          }
-          if(stationCell) stationCell.classList.add('alert');
-        } else {
-          dataRow.classList.remove('test-alert');
-        }
-
-        dataRow.classList.toggle('stale', parsed.age > 120);
-        const prevTime = metarHist[icao] && metarHist[icao].lastTime;
-        const timeToken = parsed.time || null;
-
-        // Treat as "new" when:
-        // - there was a previous time and it changed, OR
-        // - there was no previous time and we now have a time (first successful fetch)
-        const isNew = (!!prevTime && timeToken && prevTime !== timeToken) || (!prevTime && !!timeToken);
-
-        metarHist[icao] = metarHist[icao] || { lastTime:null, lastRaw:null, pastRaw:null };
-        if(metarHist[icao].lastRaw && metarHist[icao].lastRaw !== raw) metarHist[icao].pastRaw = metarHist[icao].lastRaw;
-        metarHist[icao].lastRaw = raw;
-        metarHist[icao].lastTime = timeToken;
-
-        // Display only HH:MMZ in the Time column
-        if(timeCell) timeCell.textContent = formatMetarTime(parsed.time);
-        // remove extra appended "G" — show the wind token as parsed (it already contains gust info if present)
-        if(windCell) windCell.textContent = parsed.wind;
-        if(visCell) visCell.textContent = parsed.vis;
-        if(wxCell) wxCell.textContent = parsed.wx;
-        if(cloudsCell) cloudsCell.textContent = parsed.cld;
-        if(tdTemp) tdTemp.textContent = parsed.td;
-        if(qnhCell) qnhCell.textContent = parsed.qnh;
-
-        if(metarRows[icao]){
-          metarRows[icao].curr.textContent = metarHist[icao].lastRaw || '';
-          metarRows[icao].past.style.display = metarHist[icao].pastRaw ? 'block' : 'none';
-          metarRows[icao].past.textContent = metarHist[icao].pastRaw ? `Previous: ${metarHist[icao].pastRaw}` : '';
-        }
-
-        if(isNew){
-          // Highlight the time cell for any new METAR data
-          markTimeUpdated(icao, timeToken);
-          if(beepEnabled){
-            try{ beepAudio.currentTime = 0; beepAudio.play().catch(()=>{}); }catch(e){}
+        if(!raw) return false;
+        const lines = String(raw).split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+        let metarLine = null;
+        for (const ln of lines){
+          if (ln.startsWith(icao) || /\b\d{6}Z\b/.test(ln) || /^[A-Z]{4}\s+\d{6}Z/.test(ln)){
+            metarLine = ln;
+            break;
           }
         }
-        return isNew;
-      }catch(e){ console.error('renderMetar error', icao, e); return false; }
-    }
+        if (!metarLine && lines.length) metarLine = lines[lines.length - 1];
+        if (!metarLine) return false;
 
-    // TAF / SYNOP builders
-    const tafUrls = STATIONS.slice(0,3).map(icao=>({icao, url: TAF_TEMPLATE.replace('{ICAO}', icao)}));
-    function buildTaf(){ const tb=document.getElementById('taf'); tb.innerHTML=''; tafUrls.forEach(({icao})=>{ const tr=document.createElement('tr'); tr.innerHTML = `<td class="station">${icao}</td><td class="raw-current">Fetching…</td>`; tb.appendChild(tr); }); }
-    buildTaf();
+        const parsed = parseMetar(metarLine);
+        const state = metarState[icao];
+        if(!state || !state.row) return false;
+        const tds = state.row.querySelectorAll('td');
+        [0,2,3,4,5].forEach(i=>{ tds[i].classList.remove('alert'); tds[i].classList.remove('cloud-critical'); tds[i].classList.remove('wx-critical'); });
 
-    function buildSynop(){ const tb=document.getElementById('synop'); tb.innerHTML=''; SYNOP_URLS.forEach(({icao})=>{ const tr=document.createElement('tr'); tr.innerHTML = `<td class="station">${icao}</td><td class="raw-current">Fetching…</td>`; tb.appendChild(tr); }); }
-    buildSynop();
+        const windA = parsed.gust > 0;
+        const visA  = !isNaN(parsed.visMin) && parsed.visMin <= 5000;
+        const wxA   = parsed.wx !== '--';
+        const cloudFlag = /\b(?:CB|TCU)\b/i.test(parsed.cld) || /\bTCU\b/i.test(parsed.cld);
+        const wxCritical = setWxCritical(tds[4], parsed.wx);
 
-    function sanitizeText(text){
-      if(!text) return '';
-      if(/<\/?[a-z][\s\S]*>/i.test(text)){
-        try{
-          const doc = new DOMParser().parseFromString(text,'text/html');
-          return doc.body.textContent.trim();
-        }catch(e){
-          return text.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+        if(windA) tds[2].classList.add('alert');
+        if(visA)  tds[3].classList.add('alert');
+        if(wxA && wxCritical) tds[4].classList.add('alert');
+        if(cloudFlag) tds[5].classList.add('cloud-critical');
+        if(windA||visA||wxCritical||cloudFlag) tds[0].classList.add('alert');
+
+        state.row.classList.toggle('stale', parsed.age > 120);
+
+        if(state.lastRaw && state.lastRaw !== metarLine) state.pastRaw = state.lastRaw;
+        state.lastRaw = metarLine;
+        state.lastTime = parsed.time;
+
+        let timeDisplay = '--';
+        if(parsed.time && typeof parsed.time === 'string'){
+          const m6 = parsed.time.match(/^(\d{2})(\d{2})(\d{2})Z$/);
+          const m4 = parsed.time.match(/^(\d{2})(\d{2})Z$/);
+          if(m6) timeDisplay = `${m6[2]}:${m6[3]}Z`;
+          else if(m4) timeDisplay = `${m4[1]}:${m4[2]}Z`;
+          else timeDisplay = parsed.time;
         }
+
+        tds[1].textContent = timeDisplay;
+        tds[2].textContent = parsed.wind;
+        tds[3].textContent = parsed.vis;
+        tds[4].textContent = parsed.wx;
+        tds[5].textContent = parsed.cld;
+        tds[6].textContent = parsed.td;
+        tds[7].textContent = parsed.qnh;
+
+        if(state.rawEl) state.rawEl.textContent = state.lastRaw || '';
+        if(state.pastEl) {
+          if(state.pastRaw) { state.pastEl.style.display = 'block'; state.pastEl.textContent = `Previous: ${state.pastRaw}`; }
+          else { state.pastEl.style.display = 'none'; state.pastEl.textContent = ''; }
+        }
+
+        markTimeUpdated(icao, parsed.time);
+        return true;
+      }catch(e){
+        console.error('renderMetar error', icao, e);
+        return false;
       }
-      return text;
     }
 
-    // robustFetchText uses fetchWithTimeout and fallbacks, returns sanitized text
-    async function robustFetchText(url){
+    async function fetchMetarFor(icao){
       try {
-        const r = await fetchWithTimeout(url, REQUEST_TIMEOUT_MS_FAST);
-        if (r && r.ok){
-          const txt = await r.text();
-          if (txt && txt.trim()) return { ok:true, text: sanitizeText(txt) };
+        const url = METAR_TEMPLATE.replace('{ICAO}', icao);
+        const out = await fetchWithRetries(url, MAX_RETRIES);
+        if (!out || !out.ok || !out.text) return false;
+        const txt = String(out.text).trim();
+        const lines = txt.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+        for (let i = lines.length - 1; i >= 0; i--){
+          const ln = lines[i];
+          if (ln.startsWith(icao) || /\b\d{6}Z\b/.test(ln) || /^[A-Z]{4}\s+\d{6}Z/.test(ln)){
+            if ((icao === 'SVMI' || icao === 'SVVA') && /\bAUTO\b/i.test(ln)) continue;
+            renderMetar(icao, ln);
+            return true;
+          }
         }
-      } catch(e){}
-      try {
-        const full = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
-        const r2 = await fetchWithTimeout(full, REQUEST_TIMEOUT_MS_FAST);
-        if (r2 && r2.ok){
-          const j = await r2.json();
-          if (j && typeof j.contents === 'string' && j.contents.trim()) return { ok:true, text: sanitizeText(j.contents) };
-        }
-      } catch(e){}
-      try {
-        const full2 = 'https://r.jina.ai/http://' + url.replace(/^https?:\/\//,'');
-        const r3 = await fetchWithTimeout(full2, REQUEST_TIMEOUT_MS_FAST * 2);
-        if (r3 && r3.ok){
-          const txt3 = await r3.text();
-          if (txt3 && txt3.trim()) return { ok:true, text: sanitizeText(txt3) };
-        }
-      } catch(e){}
-      return { ok:false };
+        return false;
+      } catch (err){
+        console.error('METAR fetch error for', icao, err);
+        return false;
+      }
     }
 
-    async function loadTaf({showSpinner=true} = {}){
-      if(showSpinner) show(tafSpinnerEl);
-      try{
-        const tb = document.getElementById('taf');
-        const rows = tb.querySelectorAll('tr');
-        for(const [i, item] of tafUrls.entries()){
-          try{
-            const out = await robustFetchText(item.url);
-            if(out.ok) rows[i].querySelector('td:nth-child(2)').textContent = out.text.replace(/\s+/g,' ');
-            else rows[i].querySelector('td:nth-child(2)').textContent = 'No data';
-          }catch(e){ console.error('TAF row error', item.icao, e); rows[i].querySelector('td:nth-child(2)').textContent = 'Error'; }
-        }
+    async function refreshAllMetars(){
+      try {
+        const promises = STATIONS.map(s => fetchMetarFor(s));
+        await Promise.all(promises);
         const local = formatLocalDateTimeParts();
-        document.getElementById('taf-updated').textContent = `TAF last updated: ${local.date} ${local.time}`;
-      }finally{ if(showSpinner) hide(tafSpinnerEl); }
-    }
-
-    async function loadSynop({showSpinner=true} = {}){
-      if(showSpinner) show(synopSpinnerEl);
-      try{
-        const tb = document.getElementById('synop');
-        for(let i=0;i<SYNOP_URLS.length;i++){
-          try{
-            const out = await robustFetchText(SYNOP_URLS[i].url);
-            if(out.ok) tb.children[i].querySelector('td:nth-child(2)').textContent = out.text.replace(/\s+/g,' ');
-            else tb.children[i].querySelector('td:nth-child(2)').textContent = 'No data';
-          }catch(e){ console.error('SYNOP row error', e); tb.children[i].querySelector('td:nth-child(2)').textContent = 'Error'; }
-        }
-        const local = formatLocalDateTimeParts();
-        document.getElementById('synop-updated').textContent = `SYNOP last updated: ${local.date} ${local.time}`;
-      }finally{ if(showSpinner) hide(synopSpinnerEl); }
-    }
-
-    // concurrency limiter
-    async function asyncPool(poolLimit, array, iteratorFn){
-      const ret = [];
-      const executing = [];
-      for (const item of array){
-        const p = Promise.resolve().then(()=>iteratorFn(item));
-        ret.push(p);
-        const e = p.then(()=> executing.splice(executing.indexOf(e), 1));
-        executing.push(e);
-        if (executing.length >= poolLimit) await Promise.race(executing);
-      }
-      return Promise.all(ret);
-    }
-
-    // METAR refresh with concurrency limit and robust fetch
-    async function refreshAllMetarsWithLimit({showSpinner=true} = {}){
-      if (showSpinner) show(metarSpinnerEl);
-      try {
-        if (testMode){
-          const now = new Date(); const dd = String(now.getUTCDate()).padStart(2,'0'); const hh = String(now.getUTCHours()).padStart(2,'0'); const mm = String(now.getUTCMinutes()).padStart(2,'0');
-          const token = `${dd}${hh}${mm}Z`;
-          const samples = {
-            'TNCA': `TNCA ${token} 35035G50KT 0400 +TSRA FEW020CB BKN030 26/24 Q0980`,
-            'TNCB': `TNCB ${token} 09012G30KT 0500 -DZ SCT020 BKN040 24/22 Q1010`,
-            'TNCC': `TNCC ${token} 12045G60KT 0500 +TSRA FEW020CB OVC025 27/25 Q1000`,
-            // include TCU in TNCM sample for test
-            'TNCM': `TNCM ${token} 20015G35KT 0800 SHRA FEW020TCU BKN018 25/23 Q0995`,
-            'SVMI': `SVMI ${token} 30025G45KT 9999 VCTS FEW020CB BKN030 28/26 Q1002`,
-            'SVVA': `SVVA ${token} 04010G20KT 0300 -DZ FEW020 BKN025 22/21 Q1008`
-          };
-          STATIONS.forEach(icao => renderMetar(icao, samples[icao]));
-          const local = formatLocalDateTimeParts();
-          document.getElementById('last-updated').textContent = `METAR test data applied: ${local.date} ${local.time}`;
-          return;
-        }
-
-        const fetchStation = async (icao) => {
-          try {
-            const url = METAR_TEMPLATE.replace('{ICAO}', icao);
-            const out = await robustFetchText(url);
-            if (!out.ok || !out.text) {
-              if(metarRows[icao]) metarRows[icao].curr.textContent = 'No data';
-              return { icao, ok:false };
-            }
-            const txt = String(out.text).trim();
-            const lines = txt.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-            for (let i = lines.length - 1; i >= 0; i--){
-              const ln = lines[i];
-              if (ln.startsWith(icao) || /\b\d{6}Z\b/.test(ln) || /^[A-Z]{4}\s+\d{6}Z/.test(ln)){
-                if ((icao === 'SVMI' || icao === 'SVVA') && /\bAUTO\b/i.test(ln)) continue;
-                renderMetar(icao, ln);
-                return { icao, ok:true };
-              }
-            }
-            if (lines.length){
-              const ln = lines[lines.length - 1];
-              if (!((icao === 'SVMI' || icao === 'SVVA') && /\bAUTO\b/i.test(ln))){
-                renderMetar(icao, ln);
-                return { icao, ok:true };
-              }
-            }
-            if(metarRows[icao]) metarRows[icao].curr.textContent = 'No METAR line';
-            return { icao, ok:false };
-          } catch (err){
-            console.error('METAR fetch error for', icao, err);
-            if(metarRows[icao]) metarRows[icao].curr.textContent = 'Error';
-            return { icao, ok:false };
-          }
-        };
-
-        await asyncPool(CONCURRENCY_LIMIT, STATIONS, fetchStation);
-        const local = formatLocalDateTimeParts();
-        document.getElementById('last-updated').textContent = `METAR last updated: ${local.date} ${local.time}`;
-      } finally {
-        if (showSpinner) hide(metarSpinnerEl);
+        if (lastUpdatedEl) lastUpdatedEl.textContent = `METAR last updated: ${local.date} ${local.time}`;
+      } catch (e){
+        console.error('refreshAllMetars error', e);
       }
     }
 
-    // lazy load sequence: METARs first, then TAF, then SYNOP
-    async function lazyLoadSequence({showGlobalSpinner=true} = {}){
-      if (showGlobalSpinner) show(globalSpinnerEl);
-      try {
-        await refreshAllMetarsWithLimit({showSpinner:true});
-        await loadTaf({showSpinner:true});
-        await loadSynop({showSpinner:true});
-      } finally {
-        if (showGlobalSpinner) hide(globalSpinnerEl);
+    /* ===========================
+       Test mode: show only red-highlighted weather
+       =========================== */
+    let testMode = false;
+    let testInterval = null;
+
+    // test samples include a variety of conditions that should trigger red highlight
+    const TEST_SAMPLES = [
+      {
+        'TNCA':'TNCA 152000Z 09019KT 9999 VCSH BKN016 28/23 Q1011 NOSIG',
+        'TNCB':'TNCB 152000Z 34020G35KT 0400 +TSRA FEW020CB BKN030 26/24 Q0980',
+        'TNCC':'TNCC 152000Z 12045G60KT 0500 +TSRA FEW020CB OVC025 27/25 Q1000',
+        'TNCM':'TNCM 152000Z 20015G35KT 0800 SHRA FEW020TCU BKN018 25/23 Q0995',
+        'SVMI':'SVMI 152000Z 30025G45KT 9999 VCSH FEW020CB BKN030 28/26 Q1002',
+        'SVVA':'SVVA 152000Z 04010G20KT 0300 -SHRA FEW020 BKN025 22/21 Q1008'
+      },
+      {
+        'TNCA':'TNCA 152010Z 35035G50KT 0400 +TSRA FEW020CB BKN030 26/24 Q0980',
+        'TNCB':'TNCB 152010Z 09012G30KT 0500 -DZ SCT020 BKN040 24/22 Q1010',
+        'TNCC':'TNCC 152010Z 12045G60KT 0500 VCTS FEW020CB OVC025 27/25 Q1000',
+        'TNCM':'TNCM 152010Z 20015G35KT 0800 SHRA FEW020TCU BKN018 25/23 Q0995',
+        'SVMI':'SVMI 152010Z 30025G45KT 9999 VCTS FEW020CB BKN030 28/26 Q1002',
+        'SVVA':'SVVA 152010Z 04010G20KT 0300 -SHRA FEW020 BKN025 22/21 Q1008'
+      },
+      {
+        'TNCA':'TNCA 152020Z 12010KT 9999 FEW020 SCT040 28/24 Q1013',
+        'TNCB':'TNCB 152020Z 08008KT 9999 FEW025 SCT050 26/22 Q1015',
+        'TNCC':'TNCC 152020Z 14012KT 9999 SCT030 BKN050 27/25 Q1008',
+        'TNCM':'TNCM 152020Z 18012KT 9999 FEW020 SCT040 26/24 Q1005',
+        'SVMI':'SVMI 152020Z 20015KT 9999 FEW020 SCT030 29/27 Q1009',
+        'SVVA':'SVVA 152020Z 06008KT 9999 FEW020 SCT040 24/22 Q1010'
       }
+    ];
+
+    function startTestRunner(){
+      if(testInterval) clearInterval(testInterval);
+      let idx = 0;
+      applyTestSamples(TEST_SAMPLES[idx]);
+      // after rendering, show only alert rows
+      applyTestModeVisibility(true);
+      testInterval = setInterval(()=>{
+        idx = (idx + 1) % TEST_SAMPLES.length;
+        applyTestSamples(TEST_SAMPLES[idx]);
+        applyTestModeVisibility(true);
+      }, 4000);
     }
 
-    // Event wiring
-    document.getElementById('metar-refresh-btn').addEventListener('click', ()=>refreshAllMetarsWithLimit({showSpinner:true}));
-    document.getElementById('taf-refresh-btn').addEventListener('click', ()=>loadTaf({showSpinner:true}));
-    document.getElementById('synop-refresh-btn').addEventListener('click', ()=>loadSynop({showSpinner:true}));
-    document.getElementById('refresh-btn').addEventListener('click', ()=>lazyLoadSequence({showGlobalSpinner:true}));
-    document.getElementById('mute-btn').addEventListener('click', ()=>{ beepEnabled = !beepEnabled; document.getElementById('mute-btn').textContent = beepEnabled ? 'Mute Beep' : 'Unmute Beep'; });
-    document.getElementById('test-btn').addEventListener('click', ()=>{
-      testMode = !testMode;
-      document.getElementById('test-btn').textContent = testMode ? 'Exit Test Mode' : 'Enter Test Mode';
-      if(testMode){ const tests = makeTestMetars(); tests.forEach(({icao, raw}) => renderMetar(icao, raw)); const local = formatLocalDateTimeParts(); document.getElementById('last-updated').textContent = `METAR test mode: ${local.date} ${local.time}`; }
-      else refreshAllMetarsWithLimit({showSpinner:true});
+    function stopTestRunner(){
+      if(testInterval){ clearInterval(testInterval); testInterval = null; }
+      applyTestModeVisibility(false);
+    }
+
+    function applyTestSamples(sample){
+      STATIONS.forEach(icao => {
+        const raw = sample[icao] || `${icao} 151206Z 09010KT 9999 FEW020 28/24 Q1013`;
+        renderMetar(icao, raw);
+      });
+      const local = formatLocalDateTimeParts();
+      if (lastUpdatedEl) lastUpdatedEl.textContent = `METAR test data applied: ${local.date} ${local.time}`;
+    }
+
+    /* ===========================
+       Events & wiring
+       =========================== */
+    document.getElementById('metar-refresh-btn')?.addEventListener('click', ()=>refreshAllMetars());
+    document.getElementById('refresh-btn')?.addEventListener('click', ()=>{ updateVisFromKnmi(); refreshAllMetars(); });
+
+    document.getElementById('taf-refresh-btn')?.addEventListener('click', async ()=>{
+      const btn = document.getElementById('taf-refresh-btn');
+      btn.disabled = true;
+      try { await loadAllTafs(); } catch(e){ console.warn(e); }
+      setTimeout(()=>btn.disabled = false, 800);
     });
 
+    document.getElementById('synop-refresh-btn')?.addEventListener('click', async ()=>{
+      const btn = document.getElementById('synop-refresh-btn');
+      btn.disabled = true;
+      try { await loadAllSynops(); } catch(e){ console.warn(e); }
+      setTimeout(()=>btn.disabled = false, 800);
+    });
+
+    document.getElementById('vis-refresh-btn')?.addEventListener('click', async ()=>{
+      const btn = document.getElementById('vis-refresh-btn');
+      btn.disabled = true;
+      try { await updateVisFromKnmi(); } catch(e){ console.warn(e); }
+      setTimeout(()=>btn.disabled = false, 800);
+    });
+
+    document.getElementById('mute-btn')?.addEventListener('click', ()=>{
+      const b = document.getElementById('mute-btn');
+      const pressed = b.getAttribute('aria-pressed') === 'true';
+      b.setAttribute('aria-pressed', String(!pressed));
+      b.textContent = pressed ? 'Mute Beep' : 'Unmute Beep';
+    });
+
+    document.getElementById('test-btn')?.addEventListener('click', ()=>{
+      testMode = !testMode;
+      const b = document.getElementById('test-btn');
+      if (b) b.textContent = testMode ? 'Exit Test Mode' : 'Enter Test Mode';
+      if (testMode) startTestRunner(); else stopTestRunner();
+    });
+
+    // double-click copy to clipboard
     document.body.addEventListener('dblclick', async e=>{
-      e.preventDefault();
       const td = e.target.closest('td');
       if(!td) return;
       try{ await navigator.clipboard.writeText(td.textContent.trim()); }catch(e){}
@@ -852,37 +743,109 @@
       const sel = window.getSelection && window.getSelection(); if(sel && sel.removeAllRanges) sel.removeAllRanges();
     });
 
-    // Auto refresh intervals
-    setInterval(()=>{ if(!testMode) refreshAllMetarsWithLimit({showSpinner:false}); }, METAR_REFRESH_MS);
-    setInterval(()=>{ if(!testMode) loadTaf({showSpinner:false}); }, TAF_REFRESH_MS);
-    setInterval(()=>{ if(!testMode) loadSynop({showSpinner:false}); }, SYNOP_REFRESH_MS);
+    /* ===========================
+       TAF & SYNOP helpers (kept sanitized, no URLs shown)
+       =========================== */
+    function buildTafTable(){
+      if(!tafTbody) return;
+      tafTbody.innerHTML = '';
+      STATIONS.slice(0,3).forEach(icao=>{
+        const tr = document.createElement('tr');
+        tr.dataset.icao = icao;
+        tr.innerHTML = `<td class="station">${icao}</td><td class="taf-raw"></td>`;
+        tafTbody.appendChild(tr);
+      });
+    }
+    buildTafTable();
 
-    // initial lazy load and visibility update
-    // populate test samples immediately so UI is visible even if CORS blocks real fetches
-    (function initialPopulate(){
-      const tests = makeTestMetars();
-      tests.forEach(({icao, raw}) => renderMetar(icao, raw));
+    async function loadTafRow(icao){
+      try {
+        const url = TAF_TEMPLATE.replace('{ICAO}', icao);
+        const out = await fetchWithRetries(url, MAX_RETRIES);
+        if (out && out.ok && out.text){
+          const row = tafTbody.querySelector(`tr[data-icao="${icao}"]`);
+          if (row) row.querySelector('.taf-raw').textContent = out.text.trim();
+        }
+      } catch (e){
+        console.error('loadTafRow error', icao, e);
+      }
+    }
+
+    async function loadAllTafs(){
+      const list = STATIONS.slice(0,3);
+      await Promise.all(list.map(i=>loadTafRow(i)));
       const local = formatLocalDateTimeParts();
-      document.getElementById('last-updated').textContent = `Initial sample data: ${local.date} ${local.time}`;
-      // still attempt real fetches in background
-      lazyLoadSequence({showGlobalSpinner:false});
-      updateVis(false);
+      if (tafUpdatedEl) tafUpdatedEl.textContent = `TAF last updated: ${local.date} ${local.time}`;
+    }
+
+    function buildSynopTable(){
+      if(!synopTbody) return;
+      synopTbody.innerHTML = '';
+      const sources = ['TNCA SINU50','TNCA SMNU50','TNCC SI','TNCC SM'];
+      sources.forEach((name, i)=>{
+        const tr = document.createElement('tr');
+        tr.dataset.idx = String(i);
+        tr.innerHTML = `<td class="station">${name}</td><td class="synop-raw"></td>`;
+        synopTbody.appendChild(tr);
+      });
+    }
+    buildSynopTable();
+
+    async function loadSynopRow(index, url){
+      try {
+        const out = await fetchWithRetries(url, MAX_RETRIES);
+        if (out && out.ok && out.text){
+          const row = synopTbody.querySelector(`tr[data-idx="${index}"]`);
+          if (row) row.querySelector('.synop-raw').textContent = out.text.trim();
+        }
+      } catch (e){
+        console.error('loadSynopRow error', index, e);
+      }
+    }
+
+    async function loadAllSynops(){
+      const SYNOP_URLS = [
+        'https://tgftp.nws.noaa.gov/data/raw/si/sinu50.tnca..txt',
+        'https://tgftp.nws.noaa.gov/data/raw/sm/smnu50.tnca..txt',
+        'https://tgftp.nws.noaa.gov/data/raw/si/sica20.tncc..txt',
+        'https://tgftp.nws.noaa.gov/data/raw/sm/smca01.tncc..txt'
+      ];
+      const promises = SYNOP_URLS.map((u, i) => loadSynopRow(i, u));
+      await Promise.all(promises);
+      const local = formatLocalDateTimeParts();
+      if (synopUpdatedEl) synopUpdatedEl.textContent = `SYNOP last updated: ${local.date} ${local.time}`;
+    }
+
+    /* ===========================
+       Intervals & initial load
+       =========================== */
+    setInterval(()=>{ if(!testMode) refreshAllMetars(); }, METAR_REFRESH_MS);
+    setInterval(()=>{ if(!testMode) updateVisFromKnmi(); }, VIS_REFRESH_MS);
+
+    (async function init(){
+      try {
+        buildMetarTable();
+        buildTafTable();
+        buildSynopTable();
+        if (visValueEl) visValueEl.textContent = '—';
+        if (localClockEl) localClockEl.textContent = '--:--:--';
+        if (utcClockEl) utcClockEl.textContent = '--:--:--';
+        await Promise.allSettled([ updateVisFromKnmi(), refreshAllMetars() ]);
+      } catch (e){
+        console.error('initialization error', e);
+      }
     })();
 
-    // helper: test data
-    function makeTestMetars(){
-      const now = new Date(); const dd = String(now.getUTCDate()).padStart(2,'0'); const hh = String(now.getUTCHours()).padStart(2,'0'); const mm = String(now.getUTCMinutes()).padStart(2,'0');
-      const timeToken = `${dd}${hh}${mm}Z`;
-      const samples = {
-        'TNCA': `${'TNCA'} ${timeToken} 35035G50KT 0400 +TSRA FEW020CB BKN030 26/24 Q0980`,
-        'TNCB': `${'TNCB'} ${timeToken} 09012G30KT 0500 -DZ SCT020 BKN040 24/22 Q1010`,
-        'TNCC': `${'TNCC'} ${timeToken} 12045G60KT 0500 +TSRA FEW020CB OVC025 27/25 Q1000`,
-        'TNCM': `${'TNCM'} ${timeToken} 20015G35KT 0800 SHRA FEW020TCU BKN018 25/23 Q0995`,
-        'SVMI': `${'SVMI'} ${timeToken} 30025G45KT 9999 VCTS FEW020CB BKN030 28/26 Q1002`,
-        'SVVA': `${'SVVA'} ${timeToken} 04010G20KT 0300 -DZ FEW020 BKN025 22/21 Q1008`
-      };
-      return STATIONS.map(icao => ({ icao, raw: samples[icao] || `${icao} ${timeToken} 09010KT 9999 FEW020 28/24 Q1013` }));
-    }
+    // Expose debug API
+    window.__metarDashboard = {
+      refreshAllMetars,
+      updateVisFromKnmi,
+      loadAllTafs,
+      loadAllSynops,
+      renderMetar,
+      startTestRunner,
+      stopTestRunner
+    };
 
   })();
   </script>
